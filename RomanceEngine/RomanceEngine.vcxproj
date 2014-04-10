@@ -88,6 +88,7 @@
     <None Include="vs.cg" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\RomanceEngine\Math\matrix_4x4.h" />
     <ClInclude Include="include\RomanceEngine\Math\vector_3d.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
