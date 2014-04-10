@@ -16,15 +16,47 @@
     <Filter Include="Shader">
       <UniqueIdentifier>{a305aa39-d9af-4970-87a1-b9f35b4da239}</UniqueIdentifier>
     </Filter>
+    <Filter Include="RomanceEngine">
+      <UniqueIdentifier>{76ed7e6e-ddef-42f7-b9d9-9610bd7415c2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RomanceEngine\Source">
+      <UniqueIdentifier>{26b8ba7e-84e5-49be-9c2b-44fc987036c1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RomanceEngine\Header">
+      <UniqueIdentifier>{c1351765-6580-4df2-9235-5654ee9b8721}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RomanceEngine\Source\Math">
+      <UniqueIdentifier>{80f2804c-6c39-4b50-b959-d96ee91cffae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RomanceEngine\Header\Math">
+      <UniqueIdentifier>{f4a5172d-1363-48f9-9485-e9d12e97a738}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RomanceEngine\Math\vector_3d.cpp">
+      <Filter>RomanceEngine\Source\Math</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="none.fx">
       <Filter>Shader</Filter>
     </None>
+    <None Include="none.cg">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="vs.cg">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="fs.cg">
+      <Filter>Shader</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\RomanceEngine\Math\vector_3d.h">
+      <Filter>RomanceEngine\Header\Math</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

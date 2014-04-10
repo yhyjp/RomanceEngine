@@ -1,8 +1,24 @@
 
 #include <windows.h>
 #include <tchar.h>
+#include <RomanceEngine/Math/vector_3d.h>
+#include <iostream>
+using namespace std;
 
-#pragma once
+// warning C4996: 'freopen': This function or variable may be unsafe...
+#pragma warning (disable : 4996)
+
+
+void sandbox()
+{
+	typedef RomanceEngine::Math::Vector3D V;
+
+	V a(1, 2, 3);
+	V b(4, 5, 6);
+	cout << (a+b).asString() << endl;
+	cout << (a-b).asString() << endl;
+	cout << (a*4).asString() << endl;
+}
 
 #define USE_GL 1
 #define USE_DX 0
@@ -119,7 +135,7 @@ HRESULT InitDevice()
     HRESULT hr = S_OK;
 
     RECT rc;
-GetClientRect( g_hWnd, &rc );
+	GetClientRect( g_hWnd, &rc );
     UINT width = rc.right - rc.left;
     UINT height = rc.bottom - rc.top;
 
@@ -560,6 +576,8 @@ static float myProjectionMatrix[16];
 static float myGlobalAmbient[3] = { 0.1, 0.1, 0.1 };  /* Dim */
 static float myLightColor[3] = { 0.95, 0.95, 0.95 }; 
 
+static void reshape(int width, int height);
+
 static void checkForCgError(const char *situation)
 {
   CGerror error;
@@ -623,8 +641,16 @@ bool initGL(HWND hwnd)
         ReleaseDC( hwnd, dc );
         return false;
     }
+	
+    RECT rc;
+	GetClientRect( g_hWnd, &rc );
+    UINT width = rc.right - rc.left;
+    UINT height = rc.bottom - rc.top;
 
     wglMakeCurrent( dc, glrc );
+
+  glClearColor(0.1, 0.1, 0.1, 0);  /* Gray background. */
+  glEnable(GL_DEPTH_TEST);         /* Hidden surface removal. */
 
   myCgContext = cgCreateContext();
   checkForCgError("creating context");
@@ -689,6 +715,7 @@ bool initGL(HWND hwnd)
   cgSetParameter3fv(myCgFragmentParam_globalAmbient, myGlobalAmbient);
   cgSetParameter3fv(myCgFragmentParam_lightColor, myLightColor);
 
+  reshape(width, height);
 
     //OpenGLの初期設定
     wglMakeCurrent( dc, 0 );
@@ -1139,8 +1166,6 @@ void renderCube(const float size)
 
 void RenderGL( HDC dc )
 {
-    glClearColor( 1.0f, 0.2f, 0.2f, 1.0f );
-    glClearDepth( 1.0f );
 
   /* World-space positions for light and eye. */
   const float eyePosition[4] = { 0, 0, 13, 1 };
@@ -1201,7 +1226,6 @@ void RenderGL( HDC dc )
   cgUpdateProgramParameters(myCgVertexProgram);
   cgUpdateProgramParameters(myCgFragmentProgram);
   glutSolidSphere(2.0, 40, 40);
-  //renderCube(2);
 
   /*** Render red plastic solid cone ***/
 
@@ -1232,7 +1256,6 @@ void RenderGL( HDC dc )
   cgUpdateProgramParameters(myCgVertexProgram);
   cgUpdateProgramParameters(myCgFragmentProgram);
   glutSolidCone(1.5, 3.5, 30, 30);
-  //renderCube(2.5);
 
   /*** Render light as emissive white ball ***/
 
@@ -1255,13 +1278,13 @@ void RenderGL( HDC dc )
   cgUpdateProgramParameters(myCgVertexProgram);
   cgUpdateProgramParameters(myCgFragmentProgram);
   glutSolidSphere(0.2, 12, 12);
-  //renderCube(0.2);
 
   cgGLDisableProfile(myCgVertexProfile);
   checkForCgError("disabling vertex profile");
 
   cgGLDisableProfile(myCgFragmentProfile);
   checkForCgError("disabling fragment profile");
+
 
   SwapBuffers( dc );
 }
@@ -1296,6 +1319,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
+	AllocConsole();
+	freopen("CONOUT$", "w", stdout); //標準出力をコンソールにする
+	freopen("CONIN$", "r", stdin);   //標準入力をコンソールにする
+
+	sandbox();
+
 	//ウィンドウクラスを登録して
 	TCHAR szWindowClass[] = TEXT("RomanceEngine");
 	WNDCLASS wcex;
@@ -1363,6 +1392,7 @@ End:
 #if USE_DX
     CleanupDevice();
 #endif
+	FreeConsole();
 	return 0;
 }
 
