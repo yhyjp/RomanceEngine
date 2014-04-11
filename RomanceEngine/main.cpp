@@ -27,6 +27,7 @@ void sandbox()
 	cout << a.projection(b).asString() << endl;
 	cout << RomanceEngine::Math::kRM_PI2 << endl;
 	cout << RomanceEngine::Math::kRM_PI_HALF << endl;
+
 }
 
 #define USE_GL 1
