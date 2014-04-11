@@ -65,6 +65,8 @@ void sandbox()
            -1,0, 2, 0,
            0, 0, 0, 1);
     cout << d.determinant() << endl;
+
+    cout << Mat4::translate(2,3,4).multiply(y).asString() << endl;
 	}
 	
 }
@@ -1190,22 +1192,43 @@ void renderCube(const float size)
 		{ +s, -s, -s, 1 },
 	};
 	
+  // 0 2.
+  // 1 3.
+  //
+  // 4 7.
+  // 5 6.
+
+  float n[6][3] = {
+    0, 1, 0,
+    0,-1, 0,
+    0, 0, 1,
+    0, 0,-1,
+    1, 0, 0,
+   -1, 0, 0,
+  };
+
 	glBegin(GL_TRIANGLES);
+  glNormal3fv(n[0]);
 	glVertex4fv(v[0]); glVertex4fv(v[1]); glVertex4fv(v[3]);
 	glVertex4fv(v[1]); glVertex4fv(v[2]); glVertex4fv(v[3]);
 	
+  glNormal3fv(n[1]);
 	glVertex4fv(v[7]); glVertex4fv(v[5]); glVertex4fv(v[4]);
 	glVertex4fv(v[7]); glVertex4fv(v[6]); glVertex4fv(v[5]);
 	
+  glNormal3fv(n[2]);
 	glVertex4fv(v[1]); glVertex4fv(v[5]); glVertex4fv(v[6]);
 	glVertex4fv(v[5]); glVertex4fv(v[6]); glVertex4fv(v[7]);
-
+  
+  glNormal3fv(n[3]);
 	glVertex4fv(v[0]); glVertex4fv(v[3]); glVertex4fv(v[4]);
 	glVertex4fv(v[3]); glVertex4fv(v[4]); glVertex4fv(v[7]);
 	
+  glNormal3fv(n[4]);
 	glVertex4fv(v[0]); glVertex4fv(v[4]); glVertex4fv(v[1]);
 	glVertex4fv(v[4]); glVertex4fv(v[1]); glVertex4fv(v[5]);
-
+  
+  glNormal3fv(n[5]);
 	glVertex4fv(v[3]); glVertex4fv(v[7]); glVertex4fv(v[2]);
 	glVertex4fv(v[7]); glVertex4fv(v[2]); glVertex4fv(v[6]);
 
@@ -1217,7 +1240,8 @@ void RenderGL( HDC dc )
 {
 
   /* World-space positions for light and eye. */
-  const float eyePosition[4] = { 0, 0, 13, 1 };
+
+  const float eyePosition[4] = { 5, 5, 13, 1 };
   const float lightPosition[4] = { 5*sin(myLightAngle), 
                                    1.5,
                                    5*cos(myLightAngle), 1 };
@@ -1304,7 +1328,8 @@ void RenderGL( HDC dc )
   cgSetMatrixParameterfr(myCgVertexParam_modelViewProj, modelViewProjMatrix);
   cgUpdateProgramParameters(myCgVertexProgram);
   cgUpdateProgramParameters(myCgFragmentProgram);
-  glutSolidCone(1.5, 3.5, 30, 30);
+  //glutSolidCone(1.5, 3.5, 30, 30);
+  renderCube(2);
 
   /*** Render light as emissive white ball ***/
 

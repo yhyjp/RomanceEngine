@@ -82,6 +82,7 @@ const Vector3D Matrix4x4::multiply(const Vector3D& rhs) const
 
 const Matrix4x4 Matrix4x4::inverse() const
 {
+  // “f‚«o‚µ–@‚Å‹‚ß‚é.
   Matrix4x4 a = *this;
   Matrix4x4 inv = Matrix4x4::identity();
 

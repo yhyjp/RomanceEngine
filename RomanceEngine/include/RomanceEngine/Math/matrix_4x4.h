@@ -44,12 +44,17 @@ public:
 
 public:
   static const Matrix4x4 identity() { return identity_; }
+  
   static const Matrix4x4 rotateX(const float radian);
   static const Matrix4x4 rotateY(const float radian);
   static const Matrix4x4 rotateZ(const float radian);
   static const Matrix4x4 rotateByVector(const Vector3D& n, const float radian);
+  
   static const Matrix4x4 scale(const float sx, const float sy, const float sz);
-  static const Matrix4x4 scale(const Vector3D& s) { return Matrix4x4::scale(s.p_[0], s.p_[1], s.p_[2]); }
+  static const Matrix4x4 scale(const Vector3D& s) { return scale(s.p_[0], s.p_[1], s.p_[2]); }
+
+  static const Matrix4x4 translate(const float dx, const float dy, const float dz);
+  static const Matrix4x4 translate(const Vector3D& d) { return translate(d.p_[0], d.p_[1], d.p_[2]); }
 
 public:
   float p_[16];
@@ -219,6 +224,16 @@ inline const Matrix4x4 Matrix4x4::scale(const float sx, const float sy, const fl
     0, 0, sz, 0,
     0, 0,  0, 1);
 }
+
+inline const Matrix4x4 Matrix4x4::translate(const float dx, const float dy, const float dz)
+{
+  return Matrix4x4(
+    1, 0, 0, dx,
+    0, 1, 0, dy,
+    0, 0, 1, dz,
+    0, 0, 0, 1);
+}
+
 
 } // namespace Math
 } // namespace RomanceEngine
