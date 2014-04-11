@@ -36,6 +36,7 @@ void sandbox()
 
 	{
 		Mat4 a(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16);
+    V x(1,2,3);
 		Mat4 b(1,-5, 3, 0,
 			     0,-2, 6, 0,
 			     7, 2,-4, 0,
@@ -50,6 +51,7 @@ void sandbox()
 		cout << (a*2).asString() << endl;
 		cout << (a/2).asString() << endl;
 		cout << (b.multiply(c)).asString() << endl;
+    cout << b.multiply(x).asString() << endl;
 		cout << a.isDiagonal() << " " << b.isDiagonal() << endl;
 	}
 	

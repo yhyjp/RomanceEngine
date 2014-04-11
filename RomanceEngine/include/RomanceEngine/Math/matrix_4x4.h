@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <string>
+#include "vector_3d.h"
 
 namespace RomanceEngine {
 namespace Math {
@@ -28,6 +29,7 @@ public:
   const Matrix4x4& operator/=(const float rhs);
 
   const Matrix4x4 multiply(const Matrix4x4& rhs) const;
+  const Vector3D multiply(const Vector3D& rhs) const;
 
 public:
   static Matrix4x4 identity() { return identity_; }
@@ -127,6 +129,20 @@ inline const Matrix4x4 Matrix4x4::multiply(const Matrix4x4& rhs) const
       {
         res.p_[i*4+j] += p_[i*4+k] * rhs.p_[k*4+j];
       }
+    }
+  }
+  return res;
+}
+
+inline const Vector3D Matrix4x4::multiply(const Vector3D& rhs) const
+{
+  Vector3D res;
+  for (int i=0; i < 4; ++i)
+  {
+    res.p_[i] = 0;
+    for (int j=0; j < 4; ++j)
+    {
+      res.p_[i] += p_[i*4+j] * rhs.p_[j];
     }
   }
   return res;

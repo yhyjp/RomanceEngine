@@ -13,6 +13,7 @@ public:
 	Vector3D()
 	{
 		p_[0] = p_[1] = p_[2] = 0;
+    p_[3] = 1;
 	}
 
 	Vector3D(const float x, const float y, const float z)
@@ -20,6 +21,7 @@ public:
 		p_[0] = x;
 		p_[1] = y;
 		p_[2] = z;
+    p_[3] = 1;
 	}
 
 	Vector3D(const float* src/*[3]*/)
@@ -27,6 +29,7 @@ public:
 		p_[0] = src[0];
 		p_[1] = src[1];
 		p_[2] = src[2];
+    p_[3] = src[3];
 	}
 	
 	bool operator==(const Vector3D& rhs) const
@@ -161,7 +164,7 @@ public:
 	const std::string asString(const int precision=5) const;
 
 public:
-	float p_[3];
+	float p_[4];
 };
 
 inline const Vector3D operator*(const float lhs, const Vector3D& rhs)
