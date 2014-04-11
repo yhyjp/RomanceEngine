@@ -20,6 +20,11 @@ public:
     const float c0, const float c1, const float c2, const float c3, 
     const float d0, const float d1, const float d2, const float d3);
 
+  Matrix4x4::Matrix4x4(
+    const float a0, const float a1, const float a2,
+    const float b0, const float b1, const float b2,
+    const float c0, const float c1, const float c2);
+
   const std::string asString(const int precision=5) const;
   const bool isDiagonal() const;
   const Matrix4x4 transpose() const;
@@ -31,15 +36,18 @@ public:
 
   const Matrix4x4 multiply(const Matrix4x4& rhs) const;
   const Vector3D multiply(const Vector3D& rhs) const;
+  
+  const float determinant() const;
+  const float determinant3x3() const;
 
 public:
-  static Matrix4x4 identity() { return identity_; }
-  static Matrix4x4 rotateX(const float radian);
-  static Matrix4x4 rotateY(const float radian);
-  static Matrix4x4 rotateZ(const float radian);
-  static Matrix4x4 rotateByVector(const Vector3D& n, const float radian);
-  static Matrix4x4 scale(const float sx, const float sy, const float sz);
-  static Matrix4x4 scale(const Vector3D& s) { return Matrix4x4::scale(s.p_[0], s.p_[1], s.p_[2]); }
+  static const Matrix4x4 identity() { return identity_; }
+  static const Matrix4x4 rotateX(const float radian);
+  static const Matrix4x4 rotateY(const float radian);
+  static const Matrix4x4 rotateZ(const float radian);
+  static const Matrix4x4 rotateByVector(const Vector3D& n, const float radian);
+  static const Matrix4x4 scale(const float sx, const float sy, const float sz);
+  static const Matrix4x4 scale(const Vector3D& s) { return Matrix4x4::scale(s.p_[0], s.p_[1], s.p_[2]); }
 
 public:
   float p_[16];
@@ -71,6 +79,17 @@ inline Matrix4x4::Matrix4x4(
   p_[ 4]=b0; p_[ 5]=b1; p_[ 6]=b2; p_[ 7]=b3;
   p_[ 8]=c0; p_[ 9]=c1; p_[10]=c2; p_[11]=c3;
   p_[12]=d0; p_[13]=d1; p_[14]=d2; p_[15]=d3;
+}
+
+inline Matrix4x4::Matrix4x4(
+  const float a0, const float a1, const float a2,
+  const float b0, const float b1, const float b2,
+  const float c0, const float c1, const float c2)
+{
+  p_[ 0]=a0; p_[ 1]=a1; p_[ 2]=a2; p_[ 3]=0;
+  p_[ 4]=b0; p_[ 5]=b1; p_[ 6]=b2; p_[ 7]=0;
+  p_[ 8]=c0; p_[ 9]=c1; p_[10]=c2; p_[11]=0;
+  p_[12]=0; p_[13]=0; p_[14]=0; p_[15]=1;
 }
 
 inline const bool Matrix4x4::isDiagonal() const
@@ -155,11 +174,47 @@ inline const Vector3D Matrix4x4::multiply(const Vector3D& rhs) const
   return res;
 }
 
+inline const float Matrix4x4::determinant() const
+{
+  const Matrix4x4 a(
+    p_[1*4+1], p_[1*4+2], p_[1*4+3],
+    p_[2*4+1], p_[2*4+2], p_[2*4+3],
+    p_[3*4+1], p_[3*4+2], p_[3*4+3]
+    );
+  const Matrix4x4 b(
+    p_[1*4+0], p_[1*4+2], p_[1*4+3],
+    p_[2*4+0], p_[2*4+2], p_[2*4+3],
+    p_[3*4+0], p_[3*4+2], p_[3*4+3]
+    );
+  const Matrix4x4 c(
+    p_[1*4+0], p_[1*4+1], p_[1*4+3],
+    p_[2*4+0], p_[2*4+1], p_[2*4+3],
+    p_[3*4+0], p_[3*4+1], p_[3*4+3]
+    );
+  const Matrix4x4 d(
+    p_[1*4+0], p_[1*4+1], p_[1*4+2],
+    p_[2*4+0], p_[2*4+1], p_[2*4+2],
+    p_[3*4+0], p_[3*4+1], p_[3*4+2]
+    );
+
+  return p_[0*4+0]*a.determinant3x3()
+    - p_[0*4+1]*b.determinant3x3()
+    + p_[0*4+2]*c.determinant3x3()
+    - p_[0*4+3]*d.determinant3x3();
+}
+
+inline const float Matrix4x4::determinant3x3() const
+{
+  const Vector3D a(p_[0], p_[1], p_[2]);
+  const Vector3D b(p_[4], p_[5], p_[6]);
+  const Vector3D c(p_[8], p_[9], p_[10]);
+  return a.cross(b).dot(c);
+}
 
 //========================================================
 
 
-inline Matrix4x4 Matrix4x4::rotateX(const float radian)
+inline const Matrix4x4 Matrix4x4::rotateX(const float radian)
 {
   const float s = sin(radian);
   const float c = cos(radian);
@@ -170,7 +225,7 @@ inline Matrix4x4 Matrix4x4::rotateX(const float radian)
     0, 0, 0, 1);
 }
 
-inline Matrix4x4 Matrix4x4::rotateY(const float radian)
+inline const Matrix4x4 Matrix4x4::rotateY(const float radian)
 {
   const float s = sin(radian);
   const float c = cos(radian);
@@ -181,7 +236,7 @@ inline Matrix4x4 Matrix4x4::rotateY(const float radian)
     0, 0, 0, 1);
 }
 
-inline Matrix4x4 Matrix4x4::rotateZ(const float radian)
+inline const Matrix4x4 Matrix4x4::rotateZ(const float radian)
 {
   const float s = sin(radian);
   const float c = cos(radian);
@@ -192,7 +247,7 @@ inline Matrix4x4 Matrix4x4::rotateZ(const float radian)
     0, 0, 0, 1);
 }
 
-inline Matrix4x4 Matrix4x4::rotateByVector(const Vector3D& n, const float radian)
+inline const Matrix4x4 Matrix4x4::rotateByVector(const Vector3D& n, const float radian)
 {
   const float s = sin(radian);
   const float c = cos(radian);
@@ -214,7 +269,7 @@ inline Matrix4x4 Matrix4x4::rotateByVector(const Vector3D& n, const float radian
        0, 0, 0, 1).transpose();
 }
 
-inline Matrix4x4 Matrix4x4::scale(const float sx, const float sy, const float sz)
+inline const Matrix4x4 Matrix4x4::scale(const float sx, const float sy, const float sz)
 {
   return Matrix4x4(
     sx, 0, 0, 0,

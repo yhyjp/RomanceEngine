@@ -56,6 +56,12 @@ void sandbox()
 		cout << (b.multiply(c)).asString() << endl;
     cout << b.multiply(x).asString() << endl;
 		cout << a.isDiagonal() << " " << b.isDiagonal() << endl;
+
+    Mat4 d(3,-2, 0, 0,
+           1, 4,-3, 0,
+           -1,0, 2, 0,
+           0, 0, 0, 1);
+    cout << d.determinant() << endl;
 	}
 	
 }
