@@ -3,6 +3,8 @@
 #include <sstream>
 #include <string>
 
+#include <RomanceEngine/Math/constant.h>
+
 namespace RomanceEngine {
 namespace Math {
 
@@ -84,7 +86,7 @@ const Matrix4x4 Matrix4x4::inverse() const
 {
   // “f‚«o‚µ–@‚Å‹‚ß‚é.
   Matrix4x4 a = *this;
-  Matrix4x4 inv = Matrix4x4::identity();
+  Matrix4x4 inv = Matrix4x4::buildIdentity();
 
   for(int i=0; i < 4; i++)
   {
@@ -111,6 +113,45 @@ const Matrix4x4 Matrix4x4::inverse() const
   return inv;
 }
 
+const Matrix4x4 Matrix4x4::buildPerspective(const float fovRadian, const float aspectRatio, const float zNear, const float zFar)
+{
+  const float fovHalf = fovRadian / 2.0f;
+  const float deltaZ = zFar - zNear;
+  const float sine = sin(fovHalf);
+  const float cotan = cos(fovHalf) / sine;
 
-  } // namespace Math
+  return Matrix4x4(
+    cotan/aspectRatio, 0, 0, 0,
+    0, cotan, 0, 0,
+    0, 0, -(zFar + zNear)/deltaZ, -2*zNear*zFar/deltaZ,
+    0, 0, -1, 0);
+}
+
+const Matrix4x4 Matrix4x4::buildLookAt(const float eyeX, const float eyeY, const float eyeZ,
+                       const float centerX, const float centerY, const float centerZ,
+                       const float upX, const float upY, const float upZ)
+{
+  return buildLookAt(
+    Vector3D(eyeX, eyeY, eyeZ),
+    Vector3D(centerX, centerY, centerZ),
+    Vector3D(upX, upY, upZ));
+}
+
+const Matrix4x4 Matrix4x4::buildLookAt(const Vector3D& eye, const Vector3D& center, const Vector3D& up)
+{
+  const Vector3D z = eye - center;
+  const Vector3D zn = z.normal();
+  const Vector3D x = up.cross(zn);
+  const Vector3D y = zn.cross(x);
+  const Vector3D xn = x.normal();
+  const Vector3D yn = y.normal();
+
+  return Matrix4x4(
+    xn[0], xn[1], xn[2], -xn.dot(eye),
+    yn[0], yn[1], yn[2], -yn.dot(eye),
+    zn[0], zn[1], zn[2], -zn.dot(eye),
+    0, 0, 0, 1);
+}
+
+} // namespace Math
 } // namespace RomanceEngine

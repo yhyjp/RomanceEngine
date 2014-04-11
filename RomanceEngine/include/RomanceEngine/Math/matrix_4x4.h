@@ -1,5 +1,5 @@
-#ifndef __RM_MATH_MATRIX_4X4__7838A348_ACD7_4731_A2E9_33D0E5EF831B__
-#define __RM_MATH_MATRIX_4X4__7838A348_ACD7_4731_A2E9_33D0E5EF831B__
+#ifndef __RM_MATH_MATRIX_4X4__7838A348ACD74731A2E933D0E5EF831B__
+#define __RM_MATH_MATRIX_4X4__7838A348ACD74731A2E933D0E5EF831B__
 
 #include <algorithm>
 #include <string>
@@ -28,7 +28,9 @@ public:
   const std::string asString(const int precision=5) const;
   const bool isDiagonal() const;
   const Matrix4x4 transpose() const;
-
+  
+  float& operator[](const int index) { assert(0<=index && index < 16); return p_[index]; }
+  const float& operator[](const int index) const { assert(0<=index && index < 16); return p_[index]; }
   const Matrix4x4 operator*(const float rhs) const;
   const Matrix4x4 operator/(const float rhs) const;
   const Matrix4x4& operator*=(const float rhs);
@@ -43,18 +45,27 @@ public:
   const Matrix4x4 inverse() const;
 
 public:
-  static const Matrix4x4 identity() { return identity_; }
+  static const Matrix4x4 buildIdentity() { return identity_; }
   
-  static const Matrix4x4 rotateX(const float radian);
-  static const Matrix4x4 rotateY(const float radian);
-  static const Matrix4x4 rotateZ(const float radian);
-  static const Matrix4x4 rotateByVector(const Vector3D& n, const float radian);
+  static const Matrix4x4 buildRotateX(const float radian);
+  static const Matrix4x4 buildRotateY(const float radian);
+  static const Matrix4x4 buildRotateZ(const float radian);
+  static const Matrix4x4 buildRotateByVector(const Vector3D& n, const float radian);
   
-  static const Matrix4x4 scale(const float sx, const float sy, const float sz);
-  static const Matrix4x4 scale(const Vector3D& s) { return scale(s.p_[0], s.p_[1], s.p_[2]); }
+  static const Matrix4x4 buildScale(const float sx, const float sy, const float sz);
+  static const Matrix4x4 buildScale(const Vector3D& s) { return buildScale(s.p_[0], s.p_[1], s.p_[2]); }
 
-  static const Matrix4x4 translate(const float dx, const float dy, const float dz);
-  static const Matrix4x4 translate(const Vector3D& d) { return translate(d.p_[0], d.p_[1], d.p_[2]); }
+  static const Matrix4x4 buildTranslate(const float dx, const float dy, const float dz);
+  static const Matrix4x4 buildTranslate(const Vector3D& d) { return buildTranslate(d.p_[0], d.p_[1], d.p_[2]); }
+
+  static const Matrix4x4 buildPerspective(const float fovDegree, const float aspectRatio/* w/h */,
+                                           const float zNear, const float zFar);
+
+  static const Matrix4x4 buildLookAt(const float eyeX, const float eyeY, const float eyeZ,
+                                const float centerX, const float centerY, const float centerZ,
+                                const float upX, const float upY, const float upZ);
+  static const Matrix4x4 buildLookAt(const Vector3D& eye, const Vector3D& center, const Vector3D& up);
+
 
 public:
   float p_[16];
@@ -161,7 +172,7 @@ inline const float Matrix4x4::determinant3x3() const
 //========================================================
 
 
-inline const Matrix4x4 Matrix4x4::rotateX(const float radian)
+inline const Matrix4x4 Matrix4x4::buildRotateX(const float radian)
 {
   const float s = sin(radian);
   const float c = cos(radian);
@@ -172,7 +183,7 @@ inline const Matrix4x4 Matrix4x4::rotateX(const float radian)
     0, 0, 0, 1);
 }
 
-inline const Matrix4x4 Matrix4x4::rotateY(const float radian)
+inline const Matrix4x4 Matrix4x4::buildRotateY(const float radian)
 {
   const float s = sin(radian);
   const float c = cos(radian);
@@ -183,7 +194,7 @@ inline const Matrix4x4 Matrix4x4::rotateY(const float radian)
     0, 0, 0, 1);
 }
 
-inline const Matrix4x4 Matrix4x4::rotateZ(const float radian)
+inline const Matrix4x4 Matrix4x4::buildRotateZ(const float radian)
 {
   const float s = sin(radian);
   const float c = cos(radian);
@@ -194,7 +205,7 @@ inline const Matrix4x4 Matrix4x4::rotateZ(const float radian)
     0, 0, 0, 1);
 }
 
-inline const Matrix4x4 Matrix4x4::rotateByVector(const Vector3D& n, const float radian)
+inline const Matrix4x4 Matrix4x4::buildRotateByVector(const Vector3D& n, const float radian)
 {
   const float s = sin(radian);
   const float c = cos(radian);
@@ -216,7 +227,7 @@ inline const Matrix4x4 Matrix4x4::rotateByVector(const Vector3D& n, const float 
        0, 0, 0, 1).transpose();
 }
 
-inline const Matrix4x4 Matrix4x4::scale(const float sx, const float sy, const float sz)
+inline const Matrix4x4 Matrix4x4::buildScale(const float sx, const float sy, const float sz)
 {
   return Matrix4x4(
     sx, 0, 0, 0,
@@ -225,7 +236,7 @@ inline const Matrix4x4 Matrix4x4::scale(const float sx, const float sy, const fl
     0, 0,  0, 1);
 }
 
-inline const Matrix4x4 Matrix4x4::translate(const float dx, const float dy, const float dz)
+inline const Matrix4x4 Matrix4x4::buildTranslate(const float dx, const float dy, const float dz)
 {
   return Matrix4x4(
     1, 0, 0, dx,
@@ -238,4 +249,4 @@ inline const Matrix4x4 Matrix4x4::translate(const float dx, const float dy, cons
 } // namespace Math
 } // namespace RomanceEngine
 
-#endif // __RM_MATH_MATRIX_4X4__7838A348_ACD7_4731_A2E9_33D0E5EF831B__
+#endif // __RM_MATH_MATRIX_4X4__7838A348ACD74731A2E933D0E5EF831B__

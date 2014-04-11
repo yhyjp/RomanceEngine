@@ -6,6 +6,7 @@
 #include <RomanceEngine/Math/constant.h>
 #include <iostream>
 using namespace std;
+using namespace RomanceEngine::Math;
 
 // warning C4996: 'freopen': This function or variable may be unsafe...
 #pragma warning (disable : 4996)
@@ -50,7 +51,7 @@ void sandbox()
     cout << b.determinant() << endl;
     cout << b.inverse().asString() << endl;
     cout << b.multiply(b.inverse()).asString() << endl;
-    cout << Mat4::scale(2,3,4).multiply(x).asString() << endl;
+    cout << Mat4::buildScale(2,3,4).multiply(x).asString() << endl;
 
 		cout << a.asString() << endl;
 		cout << a.transpose().asString() << endl;
@@ -66,7 +67,7 @@ void sandbox()
            0, 0, 0, 1);
     cout << d.determinant() << endl;
 
-    cout << Mat4::translate(2,3,4).multiply(y).asString() << endl;
+    cout << Mat4::buildTranslate(2,3,4).multiply(y).asString() << endl;
 	}
 	
 }
@@ -790,6 +791,7 @@ static void reshape(int width, int height)
   buildPerspectiveMatrix(fieldOfView, aspectRatio,
                          1.0, 20.0,  /* Znear and Zfar */
                          myProjectionMatrix);
+  
   glViewport(0, 0, width, height);
 }
 
@@ -1255,6 +1257,7 @@ void RenderGL( HDC dc )
                     0, 0, 0,
                     0, 1, 0,
                     viewMatrix);
+
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

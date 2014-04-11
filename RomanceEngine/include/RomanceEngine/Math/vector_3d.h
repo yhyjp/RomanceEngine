@@ -3,6 +3,7 @@
 
 #include <string>
 #include <cmath>
+#include <cassert>
 
 namespace RomanceEngine {
 namespace Math {
@@ -31,6 +32,18 @@ public:
 		p_[2] = src[2];
     p_[3] = src[3];
 	}
+
+  float& operator[](const int index)
+  {
+    assert(0<=index && index < 4);
+    return p_[index];
+  }
+
+  const float& operator[](const int index) const
+  {
+    assert(0<=index && index < 4);
+    return p_[index];
+  }
 	
 	bool operator==(const Vector3D& rhs) const
 	{
@@ -40,7 +53,7 @@ public:
 			p_[2] == rhs.p_[2]);
 	}
 
-	const Vector3D Vector3D::operator*(const float rhs) const
+	const Vector3D operator*(const float rhs) const
 	{
 		return Vector3D(p_[0]*rhs, p_[1]*rhs, p_[2]*rhs);
 	}
