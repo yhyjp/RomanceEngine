@@ -59,14 +59,16 @@ public:
   static const Matrix4x4 buildTranslate(const Vector3D& d) { return buildTranslate(d.p_[0], d.p_[1], d.p_[2]); }
 
   static const Matrix4x4 buildPerspective(const float fovDegree, const float aspectRatio/* w/h */,
-                                           const float zNear, const float zFar);
+                                          const float zNear, const float zFar);
 
   static const Matrix4x4 buildLookAt(const float eyeX, const float eyeY, const float eyeZ,
-                                const float centerX, const float centerY, const float centerZ,
-                                const float upX, const float upY, const float upZ);
+                                     const float centerX, const float centerY, const float centerZ,
+                                     const float upX, const float upY, const float upZ);
   static const Matrix4x4 buildLookAt(const Vector3D& eye, const Vector3D& center, const Vector3D& up);
-
-
+  
+  static const Matrix4x4 buildOrth(const float left, const float right,
+                                   const float bottom, const float top,
+                                   const float znear, const float zfar);
 public:
   float p_[16];
 
@@ -243,6 +245,17 @@ inline const Matrix4x4 Matrix4x4::buildTranslate(const float dx, const float dy,
     1, 0, 0, dx,
     0, 1, 0, dy,
     0, 0, 1, dz,
+    0, 0, 0, 1);
+}
+
+inline const Matrix4x4 Matrix4x4::buildOrth(const float left, const float right,
+                                            const float bottom, const float top,
+                                            const float znear, const float zfar)
+{
+  return Matrix4x4(
+    2/(right-left), 0, 0, -(right+left)/(right-left),
+    0, 2/(top-bottom), 0, -(top+bottom)/(top-bottom),
+    0, 0, 2/(zfar-znear), -(zfar+znear)/(zfar-znear),
     0, 0, 0, 1);
 }
 

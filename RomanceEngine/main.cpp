@@ -768,12 +768,15 @@ bool initGL(HWND hwnd)
   cgSetParameter3fv(myCgFragmentParam_lightColor, myLightColor);
 
   reshape(width, height);
+  
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    //OpenGLÇÃèâä˙ê›íË
-    wglMakeCurrent( dc, 0 );
-    ReleaseDC( hwnd, dc );
-    SendMessage( hwnd, WM_PAINT, 0, 0 );
-    return true;
+  wglMakeCurrent( dc, 0 );
+  
+  ReleaseDC( hwnd, dc );
+  SendMessage( hwnd, WM_PAINT, 0, 0 );
+  return true;
 }
 
 /* Forward declared routine used by reshape callback. */
@@ -788,9 +791,12 @@ static void reshape(int width, int height)
   double fieldOfView = degreeToRadian(40.0); /* Radian */
 
   /* Build projection matrix once. */
-  myProjectionMatrix = Matrix4x4::buildPerspective(
-    fieldOfView, aspectRatio,
-    1.0, 20.0  /* Znear and Zfar */);
+  
+  //myProjectionMatrix = Matrix4x4::buildPerspective(
+  //  fieldOfView, aspectRatio,
+  //  1.0, 20.0  /* Znear and Zfar */);
+  
+  myProjectionMatrix = Matrix4x4::buildOrth(0, width, 0, height, 1.0, 20.0);
   
   glViewport(0, 0, width, height);
 }
@@ -914,57 +920,26 @@ void renderCube(const float size)
 	glEnd();
 }
 
-
-/* Build a row-major (C-style) 4x4 matrix transform based on the
-   parameters for glRotatef. */
-static void makeRotateMatrix(float angle,
-                             float ax, float ay, float az,
-                             float m[16])
+static void drawRect()
 {
-  float radians, sine, cosine, ab, bc, ca, tx, ty, tz;
-  float axis[3];
-  float mag;
+  glDepthMask(GL_FALSE);
 
-  axis[0] = ax;
-  axis[1] = ay;
-  axis[2] = az;
-  mag = sqrt(axis[0]*axis[0] + axis[1]*axis[1] + axis[2]*axis[2]);
-  if (mag) {
-    axis[0] /= mag;
-    axis[1] /= mag;
-    axis[2] /= mag;
-  }
-
-  radians = angle * myPi / 180.0;
-  sine = sin(radians);
-  cosine = cos(radians);
-  ab = axis[0] * axis[1] * (1 - cosine);
-  bc = axis[1] * axis[2] * (1 - cosine);
-  ca = axis[2] * axis[0] * (1 - cosine);
-  tx = axis[0] * axis[0];
-  ty = axis[1] * axis[1];
-  tz = axis[2] * axis[2];
-
-  m[0]  = tx + cosine * (1 - tx);
-  m[1]  = ab + axis[2] * sine;
-  m[2]  = ca - axis[1] * sine;
-  m[3]  = 0.0f;
-  m[4]  = ab - axis[2] * sine;
-  m[5]  = ty + cosine * (1 - ty);
-  m[6]  = bc + axis[0] * sine;
-  m[7]  = 0.0f;
-  m[8]  = ca + axis[1] * sine;
-  m[9]  = bc - axis[0] * sine;
-  m[10] = tz + cosine * (1 - tz);
-  m[11] = 0;
-  m[12] = 0;
-  m[13] = 0;
-  m[14] = 0;
-  m[15] = 1;
+  glBegin(GL_TRIANGLE_STRIP);
+  glVertex3f(100, 100, 2);
+  glVertex3f(100, 200, 2);
+  glVertex3f(200, 100, 2);
+  glVertex3f(200, 200, 2);
+  glEnd();
+  glBegin(GL_TRIANGLE_STRIP);
+  glVertex3f(150, 150, 2);
+  glVertex3f(150, 250, 2);
+  glVertex3f(250, 150, 2);
+  glVertex3f(250, 250, 2);
+  glEnd();
 }
 
 
-void RenderGL( HDC dc )
+void RenderGL2( HDC dc )
 {
 
   /* World-space positions for light and eye. */
@@ -996,13 +971,6 @@ void RenderGL( HDC dc )
 
   /* modelView = rotateMatrix * translateMatrix */
   Matrix4x4 rotateMatrix = Matrix4x4::buildRotateByVector(Vector3D(1, 1, 1), degreeToRadian(70));
-  float t[16]; makeRotateMatrix(70, 1, 1, 1, t);
-  for (int i=0; i < 16; ++i)
-  {
-    cout << rotateMatrix[i] << " vs " << t[i] << endl;
-  }
-  cout << "------" << endl;
-
   Matrix4x4 translateMatrix = Matrix4x4::buildTranslate(2, 0, 0);
   Matrix4x4 modelMatrix = translateMatrix.multiply(rotateMatrix);
 
@@ -1083,6 +1051,37 @@ void RenderGL( HDC dc )
   cgUpdateProgramParameters(myCgVertexProgram);
   cgUpdateProgramParameters(myCgFragmentProgram);
   glutSolidSphere(0.2, 12, 12);
+
+  cgGLDisableProfile(myCgVertexProfile);
+  checkForCgError("disabling vertex profile");
+
+  cgGLDisableProfile(myCgFragmentProfile);
+  checkForCgError("disabling fragment profile");
+
+
+  SwapBuffers( dc );
+}
+
+void RenderGL( HDC dc )
+{
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  cgGLBindProgram(myCgVertexProgram);
+  checkForCgError("binding vertex program");
+
+  cgGLEnableProfile(myCgVertexProfile);
+  checkForCgError("enabling vertex profile");
+
+  cgGLBindProgram(myCgFragmentProgram);
+  checkForCgError("binding fragment program");
+
+  cgGLEnableProfile(myCgFragmentProfile);
+  checkForCgError("enabling fragment profile");
+
+  cgSetMatrixParameterfr(myCgVertexParam_modelViewProj, myProjectionMatrix.p_);
+  cgUpdateProgramParameters(myCgVertexProgram);
+  cgUpdateProgramParameters(myCgFragmentProgram);
+  drawRect();
 
   cgGLDisableProfile(myCgVertexProfile);
   checkForCgError("disabling vertex profile");
