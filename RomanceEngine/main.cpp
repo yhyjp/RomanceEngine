@@ -2,6 +2,7 @@
 #include <windows.h>
 #include <tchar.h>
 #include <RomanceEngine/Math/vector_3d.h>
+#include <RomanceEngine/Math/constant.h>
 #include <iostream>
 using namespace std;
 
@@ -13,14 +14,19 @@ void sandbox()
 {
 	typedef RomanceEngine::Math::Vector3D V;
 
-	V a(0, 3, 1);
-	V b(0, 2, 0);
+	V a(1, 2, 3);
+	V b(0, 0, 1);
 	cout << (a+b).asString() << endl;
 	cout << (a-b).asString() << endl;
 	cout << (a*4).asString() << endl;
+	cout << (3*a).asString() << endl;
 	cout << a.normal().abs2() << endl;
-	cout << a.calcAngle(b)*2 << endl;
+	cout << a.cross(b).asString() << endl;
+	cout << a.calcSin(b) << endl;
+	cout << a.calcCos(b) << endl;
 	cout << a.projection(b).asString() << endl;
+	cout << RomanceEngine::Math::kRM_PI2 << endl;
+	cout << RomanceEngine::Math::kRM_PI_HALF << endl;
 }
 
 #define USE_GL 1

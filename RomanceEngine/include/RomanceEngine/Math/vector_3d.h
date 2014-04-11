@@ -36,8 +36,8 @@ public:
 			p_[1] == rhs.p_[1] &&
 			p_[2] == rhs.p_[2]);
 	}
-	
-	const Vector3D operator*(const float rhs) const
+
+	const Vector3D Vector3D::operator*(const float rhs) const
 	{
 		return Vector3D(p_[0]*rhs, p_[1]*rhs, p_[2]*rhs);
 	}
@@ -103,7 +103,7 @@ public:
 		return p_[0]*rhs.p_[0] + p_[1]*rhs.p_[1] + p_[2]*rhs.p_[2];
 	}
 
-	Vector3D cross(const Vector3D& rhs) const
+	const Vector3D cross(const Vector3D& rhs) const
 	{
 		return Vector3D(
 			p_[1]*rhs.p_[2] - p_[2]*rhs.p_[1],
@@ -122,7 +122,7 @@ public:
 		return (rhs-*this).abs2();
 	}
 
-	Vector3D normal() const
+	const Vector3D normal() const
 	{
 		const float len = abs();
 		return *this / len;
@@ -140,6 +140,12 @@ public:
 		return dot(rhs)/sqrt(abs2()*rhs.abs2());
 	}
 	
+	// ‚QƒxƒNƒgƒ‹‚ª‚È‚·Šp‚ÌƒTƒCƒ“.
+	float calcSin(const Vector3D& rhs) const
+	{
+		return cross(rhs).abs()/sqrt(abs2()*rhs.abs2());
+	}
+
 	// ‚QƒxƒNƒgƒ‹‚ª‚È‚·Šp.
 	float calcAngle(const Vector3D& rhs) const
 	{
@@ -147,7 +153,7 @@ public:
 	}
 
 	// “Š‰e.
-	Vector3D projection(const Vector3D& n) const
+	const Vector3D projection(const Vector3D& n) const
 	{
 		return n*(dot(n)/n.abs2());
 	}
@@ -157,6 +163,11 @@ public:
 public:
 	float p_[3];
 };
+
+inline const Vector3D operator*(const float lhs, const Vector3D& rhs)
+{
+	return rhs * lhs;
+}
 
 } // namespace Math
 } // namespace RomanceEngine

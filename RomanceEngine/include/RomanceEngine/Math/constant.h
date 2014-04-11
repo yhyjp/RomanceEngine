@@ -6,8 +6,10 @@
 
 namespace RomanceEngine {
 namespace Math {
-
-const float RM_PI = 3.14159265358979323846;
+	
+const float kRM_PI = 3.14159265358979323846f;
+const float kRM_PI2 = kRM_PI * kRM_PI; // PI^2
+const float kRM_PI_HALF = kRM_PI / 2.0f; // PI/2
 
 
 } // namespace Math
