@@ -13,11 +13,14 @@ void sandbox()
 {
 	typedef RomanceEngine::Math::Vector3D V;
 
-	V a(1, 2, 3);
-	V b(4, 5, 6);
+	V a(0, 3, 1);
+	V b(0, 2, 0);
 	cout << (a+b).asString() << endl;
 	cout << (a-b).asString() << endl;
 	cout << (a*4).asString() << endl;
+	cout << a.normal().abs2() << endl;
+	cout << a.calcAngle(b)*2 << endl;
+	cout << a.projection(b).asString() << endl;
 }
 
 #define USE_GL 1

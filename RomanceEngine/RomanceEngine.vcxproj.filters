@@ -61,5 +61,8 @@
     <ClInclude Include="include\RomanceEngine\Math\matrix_4x4.h">
       <Filter>RomanceEngine\Header\Math</Filter>
     </ClInclude>
+    <ClInclude Include="include\RomanceEngine\Math\constant.h">
+      <Filter>RomanceEngine\Header\Math</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

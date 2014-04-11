@@ -1,7 +1,8 @@
-#ifndef __RE_MATH_VECTOR_3D__C2781945_3D9C_436C_88E5_74DBFE9B9099__
-#define __RE_MATH_VECTOR_3D__C2781945_3D9C_436C_88E5_74DBFE9B9099__
+#ifndef __RE_MATH_VECTOR_3D__C27819453D9C436C88E574DBFE9B9099__
+#define __RE_MATH_VECTOR_3D__C27819453D9C436C88E574DBFE9B9099__
 
 #include <string>
+#include <cmath>
 
 namespace RomanceEngine {
 namespace Math {
@@ -28,75 +29,127 @@ public:
 		p_[2] = src[2];
 	}
 	
-	bool operator==(const Vector3D& lhs) const
+	bool operator==(const Vector3D& rhs) const
 	{
 		return (
-			p_[0] == lhs.p_[0] &&
-			p_[1] == lhs.p_[1] &&
-			p_[2] == lhs.p_[2]);
+			p_[0] == rhs.p_[0] &&
+			p_[1] == rhs.p_[1] &&
+			p_[2] == rhs.p_[2]);
 	}
 	
-	const Vector3D operator*(const float lhs) const
+	const Vector3D operator*(const float rhs) const
 	{
-		return Vector3D(p_[0]*lhs, p_[1]*lhs, p_[2]*lhs);
+		return Vector3D(p_[0]*rhs, p_[1]*rhs, p_[2]*rhs);
 	}
 
-	const Vector3D operator/(const float lhs) const
+	const Vector3D operator/(const float rhs) const
 	{
-		return Vector3D(p_[0]/lhs, p_[1]/lhs, p_[2]/lhs);
+		return Vector3D(p_[0]/rhs, p_[1]/rhs, p_[2]/rhs);
 	}
 
-	const Vector3D operator+(const Vector3D& lhs) const
+	const Vector3D operator+(const Vector3D& rhs) const
 	{
-		return Vector3D(p_[0]+lhs.p_[0], p_[1]+lhs.p_[1], p_[2]+lhs.p_[2]);
+		return Vector3D(p_[0]+rhs.p_[0], p_[1]+rhs.p_[1], p_[2]+rhs.p_[2]);
 	}
 
-	const Vector3D operator-(const Vector3D& lhs) const
+	const Vector3D operator-(const Vector3D& rhs) const
 	{
-		return Vector3D(p_[0]-lhs.p_[0], p_[1]-lhs.p_[1], p_[2]-lhs.p_[2]);
+		return Vector3D(p_[0]-rhs.p_[0], p_[1]-rhs.p_[1], p_[2]-rhs.p_[2]);
 	}
 
-	const Vector3D& operator*=(const float lhs)
+	const Vector3D& operator*=(const float rhs)
 	{
-		p_[0] *= lhs;
-		p_[1] *= lhs;
-		p_[2] *= lhs;
+		p_[0] *= rhs;
+		p_[1] *= rhs;
+		p_[2] *= rhs;
 		return *this;
 	}
 
-	const Vector3D& operator/=(const float lhs)
+	const Vector3D& operator/=(const float rhs)
 	{
-		Vector3D(p_[0]/lhs, p_[1]/lhs, p_[2]/lhs);
-		return *this;
-	}
-	
-	const Vector3D& operator+=(const Vector3D& lhs)
-	{
-		p_[0] += lhs.p_[0];
-		p_[1] += lhs.p_[1];
-		p_[2] += lhs.p_[2];
+		Vector3D(p_[0]/rhs, p_[1]/rhs, p_[2]/rhs);
 		return *this;
 	}
 	
-	const Vector3D& operator-=(const Vector3D& lhs)
+	const Vector3D& operator+=(const Vector3D& rhs)
 	{
-		p_[0] -= lhs.p_[0];
-		p_[1] -= lhs.p_[1];
-		p_[2] -= lhs.p_[2];
+		p_[0] += rhs.p_[0];
+		p_[1] += rhs.p_[1];
+		p_[2] += rhs.p_[2];
+		return *this;
+	}
+	
+	const Vector3D& operator-=(const Vector3D& rhs)
+	{
+		p_[0] -= rhs.p_[0];
+		p_[1] -= rhs.p_[1];
+		p_[2] -= rhs.p_[2];
 		return *this;
 	}
 
-	const float dot(const Vector3D& lhs) const
+	const float abs() const
 	{
-		return p_[0]*lhs.p_[0] + p_[1]*lhs.p_[1] + p_[2]*lhs.p_[2];
+		return sqrt(abs2());
 	}
 
-	const Vector3D cross(const Vector3D& lhs) const
+	// abs^2.
+	const float abs2() const
+	{
+		return dot(*this);
+	}
+
+	const float dot(const Vector3D& rhs) const
+	{
+		return p_[0]*rhs.p_[0] + p_[1]*rhs.p_[1] + p_[2]*rhs.p_[2];
+	}
+
+	Vector3D cross(const Vector3D& rhs) const
 	{
 		return Vector3D(
-			p_[1]*lhs.p_[2] - p_[2]*lhs.p_[1],
-			p_[2]*lhs.p_[0] - p_[0]*lhs.p_[2],
-			p_[0]*lhs.p_[1] - p_[1]*lhs.p_[0]);
+			p_[1]*rhs.p_[2] - p_[2]*rhs.p_[1],
+			p_[2]*rhs.p_[0] - p_[0]*rhs.p_[2],
+			p_[0]*rhs.p_[1] - p_[1]*rhs.p_[0]);
+	}
+	
+	float distance(const Vector3D& rhs) const
+	{
+		return (rhs-*this).abs();
+	}
+
+	// distance^2.
+	float distance2(const Vector3D& rhs) const
+	{
+		return (rhs-*this).abs2();
+	}
+
+	Vector3D normal() const
+	{
+		const float len = abs();
+		return *this / len;
+	}
+
+	const Vector3D& normalize()
+	{
+		*this = normal();
+		return *this;
+	}
+	
+	// ‚QƒxƒNƒgƒ‹‚ª‚È‚·Šp‚ÌƒRƒTƒCƒ“.
+	float calcCos(const Vector3D& rhs) const
+	{
+		return dot(rhs)/sqrt(abs2()*rhs.abs2());
+	}
+	
+	// ‚QƒxƒNƒgƒ‹‚ª‚È‚·Šp.
+	float calcAngle(const Vector3D& rhs) const
+	{
+		return acos(calcCos(rhs));
+	}
+
+	// “Š‰e.
+	Vector3D projection(const Vector3D& n) const
+	{
+		return n*(dot(n)/n.abs2());
 	}
 	
 	const std::string asString(const int precision=5) const;
@@ -108,4 +161,5 @@ public:
 } // namespace Math
 } // namespace RomanceEngine
 
-#endif // __RE_VECTOR_3D__C2781945_3D9C_436C_88E5_74DBFE9B9099__
+
+#endif // __RE_VECTOR_3D__C27819453D9C436C88E574DBFE9B9099__
