@@ -79,6 +79,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="src\RomanceEngine\Math\matrix_4x4.cpp" />
     <ClCompile Include="src\RomanceEngine\Math\vector_3d.cpp" />
   </ItemGroup>
   <ItemGroup>

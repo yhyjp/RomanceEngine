@@ -39,6 +39,9 @@
     <ClCompile Include="src\RomanceEngine\Math\vector_3d.cpp">
       <Filter>RomanceEngine\Source\Math</Filter>
     </ClCompile>
+    <ClCompile Include="src\RomanceEngine\Math\matrix_4x4.cpp">
+      <Filter>RomanceEngine\Source\Math</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="none.fx">

@@ -2,6 +2,7 @@
 #include <windows.h>
 #include <tchar.h>
 #include <RomanceEngine/Math/vector_3d.h>
+#include <RomanceEngine/Math/matrix_4x4.h>
 #include <RomanceEngine/Math/constant.h>
 #include <iostream>
 using namespace std;
@@ -13,20 +14,45 @@ using namespace std;
 void sandbox()
 {
 	typedef RomanceEngine::Math::Vector3D V;
+	typedef RomanceEngine::Math::Matrix4x4 Mat4;
 
-	V a(1, 2, 3);
-	V b(0, 0, 1);
-	cout << (a+b).asString() << endl;
-	cout << (a-b).asString() << endl;
-	cout << (a*4).asString() << endl;
-	cout << (3*a).asString() << endl;
-	cout << a.normal().abs2() << endl;
-	cout << a.cross(b).asString() << endl;
-	cout << a.calcSin(b) << endl;
-	cout << a.calcCos(b) << endl;
-	cout << a.projection(b).asString() << endl;
-	cout << RomanceEngine::Math::kRM_PI2 << endl;
-	cout << RomanceEngine::Math::kRM_PI_HALF << endl;
+	{
+		V a(1, 2, 3);
+		V b(0, 0, 1);
+		cout << (a+b).asString() << endl;
+		cout << (a-b).asString() << endl;
+		cout << (a*4).asString() << endl;
+		cout << (3*a).asString() << endl;
+		cout << a.normal().abs2() << endl;
+		cout << a.cross(b).asString() << endl;
+		cout << a.calcSin(b) << endl;
+		cout << a.calcCos(b) << endl;
+		cout << a.projection(b).asString() << endl;
+		cout << RomanceEngine::Math::kRM_PI2 << endl;
+		cout << RomanceEngine::Math::kRM_PI_HALF << endl;
+	}
+
+	cout << "-------" << endl;
+
+	{
+		Mat4 a(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16);
+		Mat4 b(1,-5, 3, 0,
+			   0,-2, 6, 0,
+			   7, 2,-4, 0,
+			   0, 0, 0, 1);
+		Mat4 c(-8, 6, 1, 0,
+			   7, 0, -3, 0,
+			   2, 4, 5, 0,
+			   0, 0, 0, 1);
+
+		cout << a.asString() << endl;
+		cout << a.transpose().asString() << endl;
+		cout << (a*2).asString() << endl;
+		cout << (a/2).asString() << endl;
+		cout << (b.multiply(c)).asString() << endl;
+		cout << a.isDiagonal() << " " << b.isDiagonal() << endl;
+	}
+	
 }
 
 #define USE_GL 1
