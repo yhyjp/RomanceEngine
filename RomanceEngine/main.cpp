@@ -47,6 +47,9 @@ void sandbox()
 			     2, 4, 5, 0,
 			     0, 0, 0, 1);
     V y(1, 0, 0);
+    cout << b.determinant() << endl;
+    cout << b.inverse().asString() << endl;
+    cout << b.multiply(b.inverse()).asString() << endl;
     cout << Mat4::scale(2,3,4).multiply(x).asString() << endl;
 
 		cout << a.asString() << endl;

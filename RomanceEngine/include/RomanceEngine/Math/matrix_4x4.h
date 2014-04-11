@@ -40,6 +40,8 @@ public:
   const float determinant() const;
   const float determinant3x3() const;
 
+  const Matrix4x4 inverse() const;
+
 public:
   static const Matrix4x4 identity() { return identity_; }
   static const Matrix4x4 rotateX(const float radian);
@@ -141,66 +143,6 @@ inline const Matrix4x4& Matrix4x4::operator/=(const float rhs)
     p_[i] /= rhs;
   }
   return *this;
-}
-
-inline const Matrix4x4 Matrix4x4::multiply(const Matrix4x4& rhs) const
-{
-  Matrix4x4 res;
-  for (int i=0; i < 4; ++i)
-  {
-    for (int j=0; j < 4; ++j)
-    {
-      res.p_[i*4+j] = 0;
-      for (int k=0; k < 4; ++k)
-      {
-        res.p_[i*4+j] += p_[i*4+k] * rhs.p_[k*4+j];
-      }
-    }
-  }
-  return res;
-}
-
-inline const Vector3D Matrix4x4::multiply(const Vector3D& rhs) const
-{
-  Vector3D res;
-  for (int i=0; i < 4; ++i)
-  {
-    res.p_[i] = 0;
-    for (int j=0; j < 4; ++j)
-    {
-      res.p_[i] += p_[i*4+j] * rhs.p_[j];
-    }
-  }
-  return res;
-}
-
-inline const float Matrix4x4::determinant() const
-{
-  const Matrix4x4 a(
-    p_[1*4+1], p_[1*4+2], p_[1*4+3],
-    p_[2*4+1], p_[2*4+2], p_[2*4+3],
-    p_[3*4+1], p_[3*4+2], p_[3*4+3]
-    );
-  const Matrix4x4 b(
-    p_[1*4+0], p_[1*4+2], p_[1*4+3],
-    p_[2*4+0], p_[2*4+2], p_[2*4+3],
-    p_[3*4+0], p_[3*4+2], p_[3*4+3]
-    );
-  const Matrix4x4 c(
-    p_[1*4+0], p_[1*4+1], p_[1*4+3],
-    p_[2*4+0], p_[2*4+1], p_[2*4+3],
-    p_[3*4+0], p_[3*4+1], p_[3*4+3]
-    );
-  const Matrix4x4 d(
-    p_[1*4+0], p_[1*4+1], p_[1*4+2],
-    p_[2*4+0], p_[2*4+1], p_[2*4+2],
-    p_[3*4+0], p_[3*4+1], p_[3*4+2]
-    );
-
-  return p_[0*4+0]*a.determinant3x3()
-    - p_[0*4+1]*b.determinant3x3()
-    + p_[0*4+2]*c.determinant3x3()
-    - p_[0*4+3]*d.determinant3x3();
 }
 
 inline const float Matrix4x4::determinant3x3() const
