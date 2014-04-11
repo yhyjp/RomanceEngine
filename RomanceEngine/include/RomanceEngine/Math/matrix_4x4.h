@@ -210,9 +210,10 @@ inline const Matrix4x4 Matrix4x4::buildRotateByVector(const Vector3D& n, const f
   const float s = sin(radian);
   const float c = cos(radian);
   const float ic = 1.0f-c;
-  const float nx = n.p_[0];
-  const float ny = n.p_[1];
-  const float nz = n.p_[2];
+  const Vector3D nn = n.normal();
+  const float nx = nn.p_[0];
+  const float ny = nn.p_[1];
+  const float nz = nn.p_[2];
   const float nxx = nx * nx;
   const float nyy = ny * ny;
   const float nzz = nz * nz;
@@ -224,7 +225,7 @@ inline const Matrix4x4 Matrix4x4::buildRotateByVector(const Vector3D& n, const f
        nxx*ic+c   , nxy*ic+nz*s, nxz*ic-ny*s, 0,
        nxy*ic-nz*s, nyy*ic+c   , nyz*ic+nx*s, 0,
        nxz*ic+ny*s, nyz*ic-nx*s, nzz*ic+c   , 0,
-       0, 0, 0, 1).transpose();
+       0, 0, 0, 1);
 }
 
 inline const Matrix4x4 Matrix4x4::buildScale(const float sx, const float sy, const float sz)
