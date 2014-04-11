@@ -15,6 +15,7 @@ void sandbox()
 {
 	typedef RomanceEngine::Math::Vector3D V;
 	typedef RomanceEngine::Math::Matrix4x4 Mat4;
+  const float kPI = RomanceEngine::Math::kRM_PI;
 
 	{
 		V a(1, 2, 3);
@@ -45,6 +46,8 @@ void sandbox()
 			     7, 0, -3, 0,
 			     2, 4, 5, 0,
 			     0, 0, 0, 1);
+    V y(1, 0, 0);
+    cout << Mat4::scale(2,3,4).multiply(x).asString() << endl;
 
 		cout << a.asString() << endl;
 		cout << a.transpose().asString() << endl;

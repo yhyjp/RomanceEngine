@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <string>
+#include <cmath>
 #include "vector_3d.h"
 
 namespace RomanceEngine {
@@ -33,6 +34,12 @@ public:
 
 public:
   static Matrix4x4 identity() { return identity_; }
+  static Matrix4x4 rotateX(const float radian);
+  static Matrix4x4 rotateY(const float radian);
+  static Matrix4x4 rotateZ(const float radian);
+  static Matrix4x4 rotateByVector(const Vector3D& n, const float radian);
+  static Matrix4x4 scale(const float sx, const float sy, const float sz);
+  static Matrix4x4 scale(const Vector3D& s) { return Matrix4x4::scale(s.p_[0], s.p_[1], s.p_[2]); }
 
 public:
   float p_[16];
@@ -146,6 +153,74 @@ inline const Vector3D Matrix4x4::multiply(const Vector3D& rhs) const
     }
   }
   return res;
+}
+
+
+//========================================================
+
+
+inline Matrix4x4 Matrix4x4::rotateX(const float radian)
+{
+  const float s = sin(radian);
+  const float c = cos(radian);
+  return Matrix4x4(
+    1, 0, 0, 0,
+    0, c,-s, 0,
+    0, s, c, 0,
+    0, 0, 0, 1);
+}
+
+inline Matrix4x4 Matrix4x4::rotateY(const float radian)
+{
+  const float s = sin(radian);
+  const float c = cos(radian);
+  return Matrix4x4(
+    c, 0, s, 0,
+    0, 1, 0, 0,
+   -s, 0, c, 0,
+    0, 0, 0, 1);
+}
+
+inline Matrix4x4 Matrix4x4::rotateZ(const float radian)
+{
+  const float s = sin(radian);
+  const float c = cos(radian);
+  return Matrix4x4(
+    c,-s, 0, 0,
+    s, c, 0, 0,
+    0, 0, 1, 0,
+    0, 0, 0, 1);
+}
+
+inline Matrix4x4 Matrix4x4::rotateByVector(const Vector3D& n, const float radian)
+{
+  const float s = sin(radian);
+  const float c = cos(radian);
+  const float ic = 1.0f-c;
+  const float nx = n.p_[0];
+  const float ny = n.p_[1];
+  const float nz = n.p_[2];
+  const float nxx = nx * nx;
+  const float nyy = ny * ny;
+  const float nzz = nz * nz;
+  const float nxy = nx * ny;
+  const float nxz = nx * nz;
+  const float nyz = ny * nz;
+
+  return Matrix4x4(
+       nxx*ic+c   , nxy*ic+nz*s, nxz*ic-ny*s, 0,
+       nxy*ic-nz*s, nyy*ic+c   , nyz*ic+nx*s, 0,
+       nxz*ic+ny*s, nyz*ic-nx*s, nzz*ic+c   , 0,
+       0, 0, 0, 1).transpose();
+}
+
+inline Matrix4x4 Matrix4x4::scale(const float sx, const float sy, const float sz)
+{
+  return Matrix4x4(
+    sx, 0, 0, 0,
+    0, sy, 0, 0,
+    0, 0, sz, 0,
+    0, 0,  0, 1);
 }
 
 } // namespace Math
