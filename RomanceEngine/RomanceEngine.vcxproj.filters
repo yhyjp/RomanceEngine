@@ -31,6 +31,12 @@
     <Filter Include="RomanceEngine\Header\Math">
       <UniqueIdentifier>{f4a5172d-1363-48f9-9485-e9d12e97a738}</UniqueIdentifier>
     </Filter>
+    <Filter Include="RomanceEngine\Header\Memory">
+      <UniqueIdentifier>{7e4e043e-837d-401a-a584-ce14e37e1d55}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RomanceEngine\Source\Memory">
+      <UniqueIdentifier>{a972c473-b2c9-49ef-a6c5-7117137655b1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -66,6 +72,9 @@
     </ClInclude>
     <ClInclude Include="include\RomanceEngine\Math\constant.h">
       <Filter>RomanceEngine\Header\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RomanceEngine\Memory\shared_ptr.h">
+      <Filter>RomanceEngine\Header\Memory</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

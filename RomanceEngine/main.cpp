@@ -1,16 +1,31 @@
-
+#include <iostream>
 #include <windows.h>
 #include <tchar.h>
 #include <RomanceEngine/Math/vector_3d.h>
 #include <RomanceEngine/Math/matrix_4x4.h>
 #include <RomanceEngine/Math/constant.h>
-#include <iostream>
+#include <RomanceEngine/Memory/shared_ptr.h>
+
 using namespace std;
 using namespace RomanceEngine::Math;
+using namespace RomanceEngine::Memory;
 
 // warning C4996: 'freopen': This function or variable may be unsafe...
 #pragma warning (disable : 4996)
 
+class Test
+{
+public:
+  Test()
+  {
+    cout << "Test Con" << endl;
+  }
+  void test(const char* s) { cout << s << endl; }
+  ~Test()
+  {
+    cout << "Test Des" << endl;
+  }
+};
 
 void sandbox()
 {
@@ -616,6 +631,56 @@ static CGparameter myCgVertexParam_modelViewProj,
                    myCgFragmentParam_Kd,
                    myCgFragmentParam_Ks,
                    myCgFragmentParam_shininess;
+
+class ShaderManager
+{
+public:
+  ShaderManager()
+  {}
+
+  void init()
+  {
+    context_ = cgCreateContext();
+  }
+
+private:
+  CGcontext context_;
+};
+
+class VertexShader
+{
+public:
+  VertexShader()
+    : hasLoaded_(false)
+  {
+  }
+
+  void checkCgError(const char *situation)
+  {
+    CGerror error;
+    const char *str = cgGetLastErrorString(&error);
+    
+    if (error != CG_NO_ERROR) {
+      printf("%s: %s: %s\n", programName_.c_str(), situation, str);
+      if (error == CG_COMPILER_ERROR) {
+        printf("%s\n", cgGetLastListing(myCgContext));
+      }
+      assert(error != CG_NO_ERROR);
+    }
+  }
+
+  bool load(const std::string& fileName, const std::string& programName)
+  {
+    fileName_ = fileName;
+    programName_ = programName;
+    hasLoaded_ = true;
+  }
+
+private:
+  bool hasLoaded_;
+  std::string programName_;
+  std::string fileName_;
+};
 
 static const char *myProgramName = "10_fragment_lighting",
                   *myVertexProgramFileName = "vs.cg",

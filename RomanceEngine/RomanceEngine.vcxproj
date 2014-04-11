@@ -39,7 +39,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)include;C:\Program Files\NVIDIA Corporation\Cg\include;$(DXSDK_DIR)Include;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include</IncludePath>
+    <IncludePath>C:\develop\boost_1_55_0\boost_1_55_0;$(ProjectDir)include;C:\Program Files\NVIDIA Corporation\Cg\include;$(DXSDK_DIR)Include;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include</IncludePath>
     <LibraryPath>C:\Program Files\NVIDIA Corporation\Cg\lib;$(DXSDK_DIR)Lib\x86;$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib</LibraryPath>
     <ExecutablePath>$(DXSDK_DIR)Utilities\bin\x86;$(VCInstallDir)bin;$(WindowsSdkDir)bin\NETFX 4.0 Tools;$(WindowsSdkDir)bin;$(VSInstallDir)Common7\Tools\bin;$(VSInstallDir)Common7\tools;$(VSInstallDir)Common7\ide;$(ProgramFiles)\HTML Help Workshop;$(FrameworkSDKDir)\bin;$(MSBuildToolsPath32);$(VSInstallDir);$(SystemRoot)\SysWow64;$(FxCopDir);$(PATH);</ExecutablePath>
   </PropertyGroup>
@@ -92,6 +92,7 @@
     <ClInclude Include="include\RomanceEngine\Math\constant.h" />
     <ClInclude Include="include\RomanceEngine\Math\matrix_4x4.h" />
     <ClInclude Include="include\RomanceEngine\Math\vector_3d.h" />
+    <ClInclude Include="include\RomanceEngine\Memory\shared_ptr.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
