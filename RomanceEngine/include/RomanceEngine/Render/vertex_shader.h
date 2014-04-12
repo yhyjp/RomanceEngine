@@ -17,11 +17,11 @@ public:
   VertexShader();
 
   bool load(const CGcontext context, const std::string& fileName, const std::string& programName);
-  void registParameter(const std::string& name);
   void bind();
   void unbind();
   void update();
 
+  void registParameter(const std::string& name);
   void setMatrixParameter(const std::string& name, const Math::Matrix4x4& value);
 
 private:
