@@ -37,6 +37,12 @@
     <Filter Include="RomanceEngine\Source\Memory">
       <UniqueIdentifier>{a972c473-b2c9-49ef-a6c5-7117137655b1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="RomanceEngine\Header\Render">
+      <UniqueIdentifier>{fad1b3ec-0d8f-4d2f-aef3-3efd4ca01390}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RomanceEngine\Source\Render">
+      <UniqueIdentifier>{74ffc0f2-2da1-4dc2-8825-a97bd8350c37}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -47,6 +53,15 @@
     </ClCompile>
     <ClCompile Include="src\RomanceEngine\Math\matrix_4x4.cpp">
       <Filter>RomanceEngine\Source\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RomanceEngine\Render\fragment_shader.cpp">
+      <Filter>RomanceEngine\Source\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RomanceEngine\Render\shader_manager.cpp">
+      <Filter>RomanceEngine\Source\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RomanceEngine\Render\vertex_shader.cpp">
+      <Filter>RomanceEngine\Source\Render</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -75,6 +90,15 @@
     </ClInclude>
     <ClInclude Include="include\RomanceEngine\Memory\shared_ptr.h">
       <Filter>RomanceEngine\Header\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RomanceEngine\Render\vertex_shader.h">
+      <Filter>RomanceEngine\Header\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RomanceEngine\Render\shader_manager.h">
+      <Filter>RomanceEngine\Header\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RomanceEngine\Render\fragment_shader.h">
+      <Filter>RomanceEngine\Header\Render</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

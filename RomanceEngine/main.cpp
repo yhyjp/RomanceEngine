@@ -5,13 +5,18 @@
 #include <RomanceEngine/Math/matrix_4x4.h>
 #include <RomanceEngine/Math/constant.h>
 #include <RomanceEngine/Memory/shared_ptr.h>
+#include <RomanceEngine/Render/vertex_shader.h>
 
 using namespace std;
 using namespace RomanceEngine::Math;
 using namespace RomanceEngine::Memory;
+using namespace RomanceEngine::Render;
 
 // warning C4996: 'freopen': This function or variable may be unsafe...
 #pragma warning (disable : 4996)
+
+#define TIMER_ID     (100)      // 作成するタイマの識別ID.
+#define TIMER_ELAPSE (1000/60)     // WM_TIMERの発生間隔.
 
 class Test
 {
@@ -648,99 +653,6 @@ bool checkCgError(const CGcontext context, const std::string& situation)
   return true;
 }
 
-class VertexShader
-{
-public:
-  VertexShader()
-    : hasLoaded_(false)
-  {
-  }
-
-  bool load(const CGcontext context, const std::string& fileName, const std::string& programName)
-  {
-    assert(hasLoaded_ == false);
-    context_ = context;
-    fileName_ = fileName;
-    programName_ = programName;
-
-    profile_ = cgGLGetLatestProfile(CG_GL_VERTEX);
-    cgGLSetOptimalOptions(profile_);
-    if (checkCgError(context, "selecting vertex profile") == false) return false;
-    
-    program_ =
-      cgCreateProgramFromFile(
-      context_,                /* Cg runtime context */
-      CG_SOURCE,               /* Program in human-readable form */
-      fileName_.c_str(),       /* Name of file containing program */
-      profile_,                /* Profile: OpenGL ARB vertex program */
-      programName_.c_str(),    /* Entry function name */
-      NULL);                   /* No extra compiler options */
-    if (checkCgError(context_, "creating vertex program from file") == false) return false;
-
-    cgGLLoadProgram(program_);
-    if (checkCgError(context_, "loading vertex program") == false) return false;
-  
-    hasLoaded_ = true;
-
-    return true;
-  }
-
-  void registParameter(const std::string& name)
-  {
-    parameters_[name] = cgGetNamedParameter(program_, name.c_str());
-    checkCgError(context_, "could not get " + name + " parameter");
-  }
-
-  void bind()
-  {
-    cgGLBindProgram(program_);
-    checkCgError(context_, "binding vertex program");
-
-    cgGLEnableProfile(profile_);
-    checkCgError(context_, "enabling vertex profile");
-  }
-
-  void unbind()
-  {
-    cgGLDisableProfile(profile_);
-    checkCgError(context_, "disabling vertex profile");
-  }
-
-  void setMatrixParameter(const std::string& name, const Matrix4x4& value)
-  {
-    std::map<std::string, CGparameter>::iterator it = parameters_.find(name);
-    if (it == parameters_.end())
-    {
-      printf("Error: parameter not registed > %s\n", name.c_str());
-      assert(false);
-    }
-    cgSetMatrixParameterfr(parameters_[name], value.p_);
-  }
-
-  void update()
-  {
-    cgUpdateProgramParameters(program_);
-  }
-
-private:
-  bool checkError()
-  {
-    CGerror error;
-    cgGetLastErrorString(&error);
-    return (error == CG_NO_ERROR);
-  }  
-
-private:
-  bool hasLoaded_;
-  std::string programName_;
-  std::string fileName_;
-  CGcontext context_;
-  CGprofile profile_;
-  CGprogram program_;
-  std::map<std::string, CGparameter> parameters_;
-};
-typedef SharedPtr<VertexShader> VertexShaderPtr;
-
 class FragmentShader
 {
 public:
@@ -1252,7 +1164,7 @@ void RenderGL2( HDC dc )
   /* modelView = viewMatrix * translateMatrix */
   translateMatrix = Matrix4x4::buildTranslate(-2, -1.5, 0);
   rotateMatrix = Matrix4x4::buildRotateByVector(Vector3D(1, 0, 0), degreeToRadian(90));
-  modelMatrix = translateMatrix.multiply(rotateMatrix);//multMatrix(modelMatrix, translateMatrix, rotateMatrix);
+  modelMatrix = translateMatrix.multiply(rotateMatrix);
 
   /* invModelMatrix = inverse(modelMatrix) */
   invModelMatrix = modelMatrix.inverse();
@@ -1260,8 +1172,6 @@ void RenderGL2( HDC dc )
   /* Transform world-space eye and light positions to sphere's object-space. */
   objSpaceEyePosition = invModelMatrix.multiply(eyePosition);
   objSpaceLightPosition = invModelMatrix.multiply(lightPosition);
-  fragmentShader_->setParameterFloat3("eyePosition", objSpaceEyePosition);
-  fragmentShader_->setParameterFloat3("lightPosition", objSpaceLightPosition);
 
   /* modelViewMatrix = viewMatrix * modelMatrix */
   modelViewMatrix = viewMatrix.multiply(modelMatrix);
@@ -1350,6 +1260,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 #endif
 			EndPaint(hWnd, &ps);
 		}
+  case WM_TIMER:
+    if( wParam != TIMER_ID )
+    {
+      break;
+    }
+    myLightAngle += 0.008;  /* Add a small angle (in radians). */
+    if (myLightAngle > 2*myPi) {
+      myLightAngle -= 2*myPi;
+    }
+		InvalidateRect( hWnd, NULL, FALSE );
+
+		return 0;
 	}
 
 	return(DefWindowProc(hWnd, message, wParam, lParam));
@@ -1406,6 +1328,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         return 0;
     }
 #endif
+
+	SetTimer( hWnd, TIMER_ID, TIMER_ELAPSE, NULL );
 
 	//メインループ
 	MSG hMsg;
