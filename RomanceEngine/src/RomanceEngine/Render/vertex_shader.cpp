@@ -1,9 +1,5 @@
 #include <RomanceEngine/Render/vertex_shader.h>
 
-#include <Cg/cg.h>
-#include <Cg/cgGL.h>
-#include <map>
-#include <string>
 #include <cassert>
 
 namespace RomanceEngine {

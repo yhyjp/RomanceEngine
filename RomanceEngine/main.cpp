@@ -5,8 +5,7 @@
 #include <RomanceEngine/Math/matrix_4x4.h>
 #include <RomanceEngine/Math/constant.h>
 #include <RomanceEngine/Memory/shared_ptr.h>
-#include <RomanceEngine/Render/vertex_shader.h>
-#include <RomanceEngine/Render/fragment_shader.h>
+#include <RomanceEngine/Render/shader_manager.h>
 
 using namespace std;
 using namespace RomanceEngine::Math;
@@ -639,67 +638,8 @@ static CGparameter myCgVertexParam_modelViewProj,
                    myCgFragmentParam_Ks,
                    myCgFragmentParam_shininess;
 
-bool checkCgError(const CGcontext context, const std::string& situation)
-{
-  CGerror error;
-  const char *str = cgGetLastErrorString(&error);
-  
-  if (error != CG_NO_ERROR) {
-    printf("Error: %s: %s\n", situation.c_str(), str);
-    if (error == CG_COMPILER_ERROR) {
-      printf("%s\n", cgGetLastListing(context));
-    }
-    return false;
-  }
-  return true;
-}
 
-class ShaderManager
-{
-public:
-  ShaderManager()
-    : hasInit_(false)
-  {}
 
-  void init()
-  {
-    context_ = cgCreateContext();
-    checkCgError(context_, "creating context");
-
-    cgGLSetDebugMode(CG_FALSE);
-    cgSetParameterSettingMode(context_, CG_DEFERRED_PARAMETER_SETTING);
-
-    hasInit_ = true;
-  }
-
-  VertexShaderPtr createVertexShader(const std::string& fileName, const std::string& programName)
-  {
-    assert(hasInit_);
-    VertexShaderPtr res(new VertexShader);
-    if (res->load(context_, fileName, programName) == false)
-    {
-      checkCgError(context_, "load: " + fileName + " > " + programName);
-      return VertexShaderPtr();
-    }
-    return res;
-  }
-
-  FragmentShaderPtr createFragmentShader(const std::string& fileName, const std::string& programName)
-  {
-    assert(hasInit_);
-    FragmentShaderPtr res(new FragmentShader);
-    if (res->load(context_, fileName, programName) == false)
-    {
-      checkCgError(context_, "load: " + fileName + " > " + programName);
-      return FragmentShaderPtr();
-    }
-    return res;
-  }
-
-private:
-  CGcontext context_;
-  bool hasInit_;
-};
 
 ShaderManager shaderManager_;
 VertexShaderPtr vertexShader_;
