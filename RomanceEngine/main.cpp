@@ -132,7 +132,7 @@ struct CBChangesEveryFrame
 D3D_DRIVER_TYPE                     g_driverType = D3D_DRIVER_TYPE_NULL;
 D3D_FEATURE_LEVEL                   g_featureLevel = D3D_FEATURE_LEVEL_11_0;
 ID3D11Device*                       g_pd3dDevice = NULL;
-ID3D11DeviceContext*                g_pImmediateContext = NULL;
+ ID3D11DeviceContext*                g_pImmediateContext = NULL;
 IDXGISwapChain*                     g_pSwapChain = NULL;
 ID3D11RenderTargetView*             g_pRenderTargetView = NULL;
 ID3D11Texture2D*                    g_pDepthStencil = NULL;
@@ -607,6 +607,7 @@ void Render()
 #include <cstdio>
 #include <cmath>
 #include <cassert>
+#include <map>
 #include <gl/gl.h>
 #include <Cg/cg.h>
 #include <Cg/cgGL.h>
@@ -632,20 +633,20 @@ static CGparameter myCgVertexParam_modelViewProj,
                    myCgFragmentParam_Ks,
                    myCgFragmentParam_shininess;
 
-class ShaderManager
+bool checkCgError(const CGcontext context, const std::string& situation)
 {
-public:
-  ShaderManager()
-  {}
-
-  void init()
-  {
-    context_ = cgCreateContext();
+  CGerror error;
+  const char *str = cgGetLastErrorString(&error);
+  
+  if (error != CG_NO_ERROR) {
+    printf("Error: %s: %s\n", situation.c_str(), str);
+    if (error == CG_COMPILER_ERROR) {
+      printf("%s\n", cgGetLastListing(context));
+    }
+    return false;
   }
-
-private:
-  CGcontext context_;
-};
+  return true;
+}
 
 class VertexShader
 {
@@ -655,32 +656,276 @@ public:
   {
   }
 
-  void checkCgError(const char *situation)
+  bool load(const CGcontext context, const std::string& fileName, const std::string& programName)
   {
-    CGerror error;
-    const char *str = cgGetLastErrorString(&error);
-    
-    if (error != CG_NO_ERROR) {
-      printf("%s: %s: %s\n", programName_.c_str(), situation, str);
-      if (error == CG_COMPILER_ERROR) {
-        printf("%s\n", cgGetLastListing(myCgContext));
-      }
-      assert(error != CG_NO_ERROR);
-    }
-  }
-
-  bool load(const std::string& fileName, const std::string& programName)
-  {
+    assert(hasLoaded_ == false);
+    context_ = context;
     fileName_ = fileName;
     programName_ = programName;
+
+    profile_ = cgGLGetLatestProfile(CG_GL_VERTEX);
+    cgGLSetOptimalOptions(profile_);
+    if (checkCgError(context, "selecting vertex profile") == false) return false;
+    
+    program_ =
+      cgCreateProgramFromFile(
+      context_,                /* Cg runtime context */
+      CG_SOURCE,               /* Program in human-readable form */
+      fileName_.c_str(),       /* Name of file containing program */
+      profile_,                /* Profile: OpenGL ARB vertex program */
+      programName_.c_str(),    /* Entry function name */
+      NULL);                   /* No extra compiler options */
+    if (checkCgError(context_, "creating vertex program from file") == false) return false;
+
+    cgGLLoadProgram(program_);
+    if (checkCgError(context_, "loading vertex program") == false) return false;
+  
     hasLoaded_ = true;
+
+    return true;
   }
+
+  void registParameter(const std::string& name)
+  {
+    parameters_[name] = cgGetNamedParameter(program_, name.c_str());
+    checkCgError(context_, "could not get " + name + " parameter");
+  }
+
+  void bind()
+  {
+    cgGLBindProgram(program_);
+    checkCgError(context_, "binding vertex program");
+
+    cgGLEnableProfile(profile_);
+    checkCgError(context_, "enabling vertex profile");
+  }
+
+  void unbind()
+  {
+    cgGLDisableProfile(profile_);
+    checkCgError(context_, "disabling vertex profile");
+  }
+
+  void setMatrixParameter(const std::string& name, const Matrix4x4& value)
+  {
+    std::map<std::string, CGparameter>::iterator it = parameters_.find(name);
+    if (it == parameters_.end())
+    {
+      printf("Error: parameter not registed > %s\n", name.c_str());
+      assert(false);
+    }
+    cgSetMatrixParameterfr(parameters_[name], value.p_);
+  }
+
+  void update()
+  {
+    cgUpdateProgramParameters(program_);
+  }
+
+private:
+  bool checkError()
+  {
+    CGerror error;
+    cgGetLastErrorString(&error);
+    return (error == CG_NO_ERROR);
+  }  
 
 private:
   bool hasLoaded_;
   std::string programName_;
   std::string fileName_;
+  CGcontext context_;
+  CGprofile profile_;
+  CGprogram program_;
+  std::map<std::string, CGparameter> parameters_;
 };
+typedef SharedPtr<VertexShader> VertexShaderPtr;
+
+class FragmentShader
+{
+public:
+  FragmentShader()
+    : hasLoaded_(false)
+  {
+  }
+
+  bool load(const CGcontext context, const std::string& fileName, const std::string& programName)
+  {
+    assert(hasLoaded_ == false);
+    context_ = context;
+    fileName_ = fileName;
+    programName_ = programName;
+
+    profile_ = cgGLGetLatestProfile(CG_GL_FRAGMENT);
+    cgGLSetOptimalOptions(profile_);
+    if (checkCgError(context, "selecting fragment profile") == false) return false;
+    
+    program_ =
+      cgCreateProgramFromFile(
+      context_,                /* Cg runtime context */
+      CG_SOURCE,               /* Program in human-readable form */
+      fileName_.c_str(),       /* Name of file containing program */
+      profile_,                /* Profile: OpenGL ARB vertex program */
+      programName_.c_str(),    /* Entry function name */
+      NULL);                   /* No extra compiler options */
+    if (checkCgError(context_, "creating fragment program from file : "+ fileName_ + ">" + programName_) == false) return false;
+
+    cgGLLoadProgram(program_);
+    if (checkCgError(context_, "loading fragment program") == false) return false;
+  
+    hasLoaded_ = true;
+
+    return true;
+  }
+
+  void registParameter(const std::string& name)
+  {
+    parameters_[name] = cgGetNamedParameter(program_, name.c_str());
+    checkCgError(context_, "could not get " + name + " parameter");
+  }
+
+  void bind()
+  {
+    cgGLBindProgram(program_);
+    checkCgError(context_, "binding fragment program");
+
+    cgGLEnableProfile(profile_);
+    checkCgError(context_, "enabling fragment profile");
+  }
+
+  void unbind()
+  {
+    cgGLDisableProfile(profile_);
+    checkCgError(context_, "disabling fragment profile");
+  }
+
+  void setParameterMatrix(const std::string& name, const Matrix4x4& value)
+  {
+    std::map<std::string, CGparameter>::iterator it = parameters_.find(name);
+    if (it == parameters_.end())
+    {
+      printf("Error: parameter not registed > %s\n", name.c_str());
+      assert(false);
+    }
+    cgSetMatrixParameterfr(parameters_[name], value.p_);
+    checkCgError(context_, "setting " + name + " parameter");
+  }
+
+  void setParameterFloat3(const std::string& name, const Vector3D& value)
+  {
+    setParameterFloat3(name, value.p_);
+  }
+
+  void setParameterFloat3(const std::string& name, const float* value/*[3]*/)
+  {
+    std::map<std::string, CGparameter>::iterator it = parameters_.find(name);
+    if (it == parameters_.end())
+    {
+      printf("Error: parameter not registed > %s\n", name.c_str());
+      assert(false);
+    }
+    cgSetParameter3fv(parameters_[name], value);
+    checkCgError(context_, "setting " + name + " parameter");
+  }
+
+  void setParameterFloat3(const std::string& name, const float value0, const float value1, const float value2)
+  {
+    std::map<std::string, CGparameter>::iterator it = parameters_.find(name);
+    if (it == parameters_.end())
+    {
+      printf("Error: parameter not registed > %s\n", name.c_str());
+      assert(false);
+    }
+    cgSetParameter3f(parameters_[name], value0, value1, value2);
+    checkCgError(context_, "setting " + name + " parameter");
+  }
+
+  void setParameterFloat1(const std::string& name, const float value)
+  {
+    std::map<std::string, CGparameter>::iterator it = parameters_.find(name);
+    if (it == parameters_.end())
+    {
+      printf("Error: parameter not registed > %s\n", name.c_str());
+      assert(false);
+    }
+    cgSetParameter1f(parameters_[name], value);
+    checkCgError(context_, "setting " + name + " parameter");
+  }
+
+  void update()
+  {
+    cgUpdateProgramParameters(program_);
+  }
+
+private:
+  bool checkError()
+  {
+    CGerror error;
+    cgGetLastErrorString(&error);
+    return (error == CG_NO_ERROR);
+  }  
+
+private:
+  bool hasLoaded_;
+  std::string programName_;
+  std::string fileName_;
+  CGcontext context_;
+  CGprofile profile_;
+  CGprogram program_;
+  std::map<std::string, CGparameter> parameters_;
+};
+typedef SharedPtr<FragmentShader> FragmentShaderPtr;
+
+class ShaderManager
+{
+public:
+  ShaderManager()
+    : hasInit_(false)
+  {}
+
+  void init()
+  {
+    context_ = cgCreateContext();
+    checkCgError(context_, "creating context");
+
+    cgGLSetDebugMode(CG_FALSE);
+    cgSetParameterSettingMode(context_, CG_DEFERRED_PARAMETER_SETTING);
+
+    hasInit_ = true;
+  }
+
+  VertexShaderPtr createVertexShader(const std::string& fileName, const std::string& programName)
+  {
+    assert(hasInit_);
+    VertexShaderPtr res(new VertexShader);
+    if (res->load(context_, fileName, programName) == false)
+    {
+      checkCgError(context_, "load: " + fileName + " > " + programName);
+      return VertexShaderPtr();
+    }
+    return res;
+  }
+
+  FragmentShaderPtr createFragmentShader(const std::string& fileName, const std::string& programName)
+  {
+    assert(hasInit_);
+    FragmentShaderPtr res(new FragmentShader);
+    if (res->load(context_, fileName, programName) == false)
+    {
+      checkCgError(context_, "load: " + fileName + " > " + programName);
+      return FragmentShaderPtr();
+    }
+    return res;
+  }
+
+private:
+  CGcontext context_;
+  bool hasInit_;
+};
+
+ShaderManager shaderManager_;
+VertexShaderPtr vertexShader_;
+FragmentShaderPtr fragmentShader_;
 
 static const char *myProgramName = "10_fragment_lighting",
                   *myVertexProgramFileName = "vs.cg",
@@ -760,77 +1005,34 @@ bool initGL(HWND hwnd)
     }
 	
     RECT rc;
-	GetClientRect( g_hWnd, &rc );
+    GetClientRect( g_hWnd, &rc );
     UINT width = rc.right - rc.left;
     UINT height = rc.bottom - rc.top;
 
     wglMakeCurrent( dc, glrc );
 
-  glClearColor(0.1, 0.1, 0.1, 0);  /* Gray background. */
-  glEnable(GL_DEPTH_TEST);         /* Hidden surface removal. */
+    glClearColor(0.1, 0.1, 0.1, 0);  /* Gray background. */
+    glEnable(GL_DEPTH_TEST);         /* Hidden surface removal. */
 
-  myCgContext = cgCreateContext();
-  checkForCgError("creating context");
-  cgGLSetDebugMode(CG_FALSE);
-  cgSetParameterSettingMode(myCgContext, CG_DEFERRED_PARAMETER_SETTING);
+    shaderManager_.init();
 
-  myCgVertexProfile = cgGLGetLatestProfile(CG_GL_VERTEX);
-  cgGLSetOptimalOptions(myCgVertexProfile);
-  checkForCgError("selecting vertex profile");
+    vertexShader_ = shaderManager_.createVertexShader(myVertexProgramFileName, myVertexProgramName);
+    vertexShader_->registParameter("modelViewProj");
 
-  myCgVertexProgram =
-    cgCreateProgramFromFile(
-      myCgContext,              /* Cg runtime context */
-      CG_SOURCE,                /* Program in human-readable form */
-      myVertexProgramFileName,  /* Name of file containing program */
-      myCgVertexProfile,        /* Profile: OpenGL ARB vertex program */
-      myVertexProgramName,      /* Entry function name */
-      NULL);                    /* No extra compiler options */
-  checkForCgError("creating vertex program from file");
-  cgGLLoadProgram(myCgVertexProgram);
-  checkForCgError("loading vertex program");
+    fragmentShader_ = shaderManager_.createFragmentShader(myFragmentProgramFileName, myFragmentProgramName);
+    fragmentShader_->registParameter("globalAmbient");
+    fragmentShader_->registParameter("lightColor");
+    fragmentShader_->registParameter("lightPosition");
+    fragmentShader_->registParameter("eyePosition");
+    fragmentShader_->registParameter("Ke");
+    fragmentShader_->registParameter("Ka");
+    fragmentShader_->registParameter("Kd");
+    fragmentShader_->registParameter("Ks");
+    fragmentShader_->registParameter("shininess");
 
-#define GET_VERTEX_PARAM(name) \
-  myCgVertexParam_##name = \
-    cgGetNamedParameter(myCgVertexProgram, #name); \
-  checkForCgError("could not get " #name " parameter");
-
-  GET_VERTEX_PARAM(modelViewProj);
-
-  myCgFragmentProfile = cgGLGetLatestProfile(CG_GL_FRAGMENT);
-  cgGLSetOptimalOptions(myCgFragmentProfile);
-  checkForCgError("selecting fragment profile");
-
-  myCgFragmentProgram =
-    cgCreateProgramFromFile(
-      myCgContext,              /* Cg runtime context */
-      CG_SOURCE,                /* Program in human-readable form */
-      myFragmentProgramFileName,
-      myCgFragmentProfile,      /* Profile: latest fragment profile */
-      myFragmentProgramName,    /* Entry function name */
-      NULL); /* No extra compiler options */
-  checkForCgError("creating fragment program from string");
-  cgGLLoadProgram(myCgFragmentProgram);
-  checkForCgError("loading fragment program");
-
-#define GET_FRAGMENT_PARAM(name) \
-  myCgFragmentParam_##name = \
-    cgGetNamedParameter(myCgFragmentProgram, #name); \
-  checkForCgError("could not get " #name " parameter");
-
-  GET_FRAGMENT_PARAM(globalAmbient);
-  GET_FRAGMENT_PARAM(lightColor);
-  GET_FRAGMENT_PARAM(lightPosition);
-  GET_FRAGMENT_PARAM(eyePosition);
-  GET_FRAGMENT_PARAM(Ke);
-  GET_FRAGMENT_PARAM(Ka);
-  GET_FRAGMENT_PARAM(Kd);
-  GET_FRAGMENT_PARAM(Ks);
-  GET_FRAGMENT_PARAM(shininess);
-
-  /* Set light source color parameters once. */
-  cgSetParameter3fv(myCgFragmentParam_globalAmbient, myGlobalAmbient);
-  cgSetParameter3fv(myCgFragmentParam_lightColor, myLightColor);
+    fragmentShader_->setParameterFloat3("globalAmbient", myGlobalAmbient);
+    fragmentShader_->setParameterFloat3("lightColor", myLightColor);
+    
 
   reshape(width, height);
   
@@ -857,11 +1059,11 @@ static void reshape(int width, int height)
 
   /* Build projection matrix once. */
   
-  //myProjectionMatrix = Matrix4x4::buildPerspective(
-  //  fieldOfView, aspectRatio,
-  //  1.0, 20.0  /* Znear and Zfar */);
+  myProjectionMatrix = Matrix4x4::buildPerspective(
+    fieldOfView, aspectRatio,
+    1.0, 20.0  /* Znear and Zfar */);
   
-  myProjectionMatrix = Matrix4x4::buildOrth(0, width, 0, height, 1.0, 20.0);
+  //myProjectionMatrix = Matrix4x4::buildOrth(0, width, 0, height, 1.0, 20.0);
   
   glViewport(0, 0, width, height);
 }
@@ -877,11 +1079,11 @@ static void setBrassMaterial(void)
               brassSpecular[3] = {0.99, 0.91, 0.81},
               brassShininess = 27.8;
 
-  cgSetParameter3fv(myCgFragmentParam_Ke, brassEmissive);
-  cgSetParameter3fv(myCgFragmentParam_Ka, brassAmbient);
-  cgSetParameter3fv(myCgFragmentParam_Kd, brassDiffuse);
-  cgSetParameter3fv(myCgFragmentParam_Ks, brassSpecular);
-  cgSetParameter1f(myCgFragmentParam_shininess, brassShininess);
+  fragmentShader_->setParameterFloat3("Ke", brassEmissive);
+  fragmentShader_->setParameterFloat3("Ka", brassAmbient);
+  fragmentShader_->setParameterFloat3("Kd", brassDiffuse);
+  fragmentShader_->setParameterFloat3("Ks", brassSpecular);
+  fragmentShader_->setParameterFloat1("shininess", brassShininess);
 }
 static void setRedPlasticMaterial(void)
 {
@@ -890,33 +1092,23 @@ static void setRedPlasticMaterial(void)
               redPlasticDiffuse[3]  = {0.5, 0.0, 0.0},
               redPlasticSpecular[3] = {0.7, 0.6, 0.6},
               redPlasticShininess = 32.0;
-
-  cgSetParameter3fv(myCgFragmentParam_Ke, redPlasticEmissive);
-  checkForCgError("setting Ke parameter");
-  cgSetParameter3fv(myCgFragmentParam_Ka, redPlasticAmbient);
-  checkForCgError("setting Ka parameter");
-  cgSetParameter3fv(myCgFragmentParam_Kd, redPlasticDiffuse);
-  checkForCgError("setting Kd parameter");
-  cgSetParameter3fv(myCgFragmentParam_Ks, redPlasticSpecular);
-  checkForCgError("setting Ks parameter");
-  cgSetParameter1f(myCgFragmentParam_shininess, redPlasticShininess);
-  checkForCgError("setting shininess parameter");
+  
+  fragmentShader_->setParameterFloat3("Ke", redPlasticEmissive);
+  fragmentShader_->setParameterFloat3("Ka", redPlasticAmbient);
+  fragmentShader_->setParameterFloat3("Kd", redPlasticDiffuse);
+  fragmentShader_->setParameterFloat3("Ks", redPlasticSpecular);
+  fragmentShader_->setParameterFloat1("shininess", redPlasticShininess);
 }
 
 static void setEmissiveLightColorOnly(void)
 {
   const float zero[3] = {0.0,  0.0,  0.0};
 
-  cgSetParameter3fv(myCgFragmentParam_Ke, myLightColor);
-  checkForCgError("setting Ke parameter");
-  cgSetParameter3fv(myCgFragmentParam_Ka, zero);
-  checkForCgError("setting Ka parameter");
-  cgSetParameter3fv(myCgFragmentParam_Kd, zero);
-  checkForCgError("setting Kd parameter");
-  cgSetParameter3fv(myCgFragmentParam_Ks, zero);
-  checkForCgError("setting Ks parameter");
-  cgSetParameter1f(myCgFragmentParam_shininess, 0);
-  checkForCgError("setting shininess parameter");
+  fragmentShader_->setParameterFloat3("Ke", myLightColor);
+  fragmentShader_->setParameterFloat3("Ka", zero);
+  fragmentShader_->setParameterFloat3("Kd", zero);
+  fragmentShader_->setParameterFloat3("Ks", zero);
+  fragmentShader_->setParameterFloat1("shininess", 0);
 }
 
 void ReleaseGL()
@@ -1018,17 +1210,8 @@ void RenderGL2( HDC dc )
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  cgGLBindProgram(myCgVertexProgram);
-  checkForCgError("binding vertex program");
-
-  cgGLEnableProfile(myCgVertexProfile);
-  checkForCgError("enabling vertex profile");
-
-  cgGLBindProgram(myCgFragmentProgram);
-  checkForCgError("binding fragment program");
-
-  cgGLEnableProfile(myCgFragmentProfile);
-  checkForCgError("enabling fragment profile");
+  vertexShader_->bind();
+  fragmentShader_->bind();
 
   /*** Render brass solid sphere ***/
 
@@ -1043,25 +1226,23 @@ void RenderGL2( HDC dc )
   Matrix4x4 invModelMatrix = modelMatrix.inverse();
 
   /* Transform world-space eye and light positions to sphere's object-space. */
-  //transform(objSpaceEyePosition, invModelMatrix, eyePosition);
   Vector3D objSpaceEyePosition = invModelMatrix.multiply(eyePosition);
-  cgSetParameter3fv(myCgFragmentParam_eyePosition, objSpaceEyePosition.p_);
-  //transform(objSpaceLightPosition, invModelMatrix, lightPosition);
   Vector3D objSpaceLightPosition = invModelMatrix.multiply(lightPosition);
-  cgSetParameter3fv(myCgFragmentParam_lightPosition, objSpaceLightPosition.p_);
+  fragmentShader_->setParameterFloat3("eyePosition", objSpaceEyePosition);
+  fragmentShader_->setParameterFloat3("lightPosition", objSpaceLightPosition);
 
   /* modelViewMatrix = viewMatrix * modelMatrix */
   Matrix4x4 modelViewMatrix = viewMatrix.multiply(modelMatrix);
-    //multMatrix(modelViewMatrix, viewMatrix, modelMatrix);
 
   /* modelViewProj = projectionMatrix * modelViewMatrix */
   Matrix4x4 modelViewProjMatrix = myProjectionMatrix.multiply(modelViewMatrix);
-  //multMatrix(modelViewProjMatrix, myProjectionMatrix, modelViewMatrix);
 
   /* Set matrix parameter with row-major matrix. */
-  cgSetMatrixParameterfr(myCgVertexParam_modelViewProj, modelViewProjMatrix.p_);
-  cgUpdateProgramParameters(myCgVertexProgram);
-  cgUpdateProgramParameters(myCgFragmentProgram);
+  vertexShader_->setMatrixParameter("modelViewProj", modelViewProjMatrix);
+ 
+  vertexShader_->update();
+  fragmentShader_->update();
+
   glutSolidSphere(2.0, 40, 40);
 
   /*** Render red plastic solid cone ***/
@@ -1078,10 +1259,9 @@ void RenderGL2( HDC dc )
 
   /* Transform world-space eye and light positions to sphere's object-space. */
   objSpaceEyePosition = invModelMatrix.multiply(eyePosition);
-  //transform(objSpaceEyePosition, invModelMatrix, eyePosition);
-  cgSetParameter3fv(myCgFragmentParam_eyePosition, objSpaceEyePosition.p_);
   objSpaceLightPosition = invModelMatrix.multiply(lightPosition);
-  cgSetParameter3fv(myCgFragmentParam_lightPosition, objSpaceLightPosition.p_);
+  fragmentShader_->setParameterFloat3("eyePosition", objSpaceEyePosition);
+  fragmentShader_->setParameterFloat3("lightPosition", objSpaceLightPosition);
 
   /* modelViewMatrix = viewMatrix * modelMatrix */
   modelViewMatrix = viewMatrix.multiply(modelMatrix);
@@ -1090,11 +1270,13 @@ void RenderGL2( HDC dc )
   modelViewProjMatrix = myProjectionMatrix.multiply(modelViewMatrix);
 
   /* Set matrix parameter with row-major matrix. */
-  cgSetMatrixParameterfr(myCgVertexParam_modelViewProj, modelViewProjMatrix.p_);
-  cgUpdateProgramParameters(myCgVertexProgram);
-  cgUpdateProgramParameters(myCgFragmentProgram);
-  //glutSolidCone(1.5, 3.5, 30, 30);
-  renderCube(2);
+  vertexShader_->setMatrixParameter("modelViewProj", modelViewProjMatrix);
+
+  vertexShader_->update();
+  fragmentShader_->update();
+
+  glutSolidCone(1.5, 3.5, 30, 30);
+  //renderCube(2);
 
   /*** Render light as emissive white ball ***/
 
@@ -1109,20 +1291,18 @@ void RenderGL2( HDC dc )
 
   setEmissiveLightColorOnly();
   /* Avoid degenerate lightPosition. */
-  cgSetParameter3f(myCgFragmentParam_lightPosition, 0,0,0);
+  fragmentShader_->setParameterFloat3("lightPosition", 0, 0, 0);
 
   /* Set matrix parameter with row-major matrix. */
-  cgSetMatrixParameterfr(myCgVertexParam_modelViewProj, modelViewProjMatrix.p_);
-  cgUpdateProgramParameters(myCgVertexProgram);
-  cgUpdateProgramParameters(myCgFragmentProgram);
+  vertexShader_->setMatrixParameter("modelViewProj", modelViewProjMatrix);
+  
+  vertexShader_->update();
+  fragmentShader_->update();
+
   glutSolidSphere(0.2, 12, 12);
-
-  cgGLDisableProfile(myCgVertexProfile);
-  checkForCgError("disabling vertex profile");
-
-  cgGLDisableProfile(myCgFragmentProfile);
-  checkForCgError("disabling fragment profile");
-
+  
+  vertexShader_->unbind();
+  fragmentShader_->unbind();
 
   SwapBuffers( dc );
 }
@@ -1131,29 +1311,18 @@ void RenderGL( HDC dc )
 {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  cgGLBindProgram(myCgVertexProgram);
-  checkForCgError("binding vertex program");
+  vertexShader_->bind();
+  fragmentShader_->bind();
 
-  cgGLEnableProfile(myCgVertexProfile);
-  checkForCgError("enabling vertex profile");
+  vertexShader_->setMatrixParameter("modelViewProj", myProjectionMatrix);
+  
+  vertexShader_->update();
+  fragmentShader_->update();
 
-  cgGLBindProgram(myCgFragmentProgram);
-  checkForCgError("binding fragment program");
-
-  cgGLEnableProfile(myCgFragmentProfile);
-  checkForCgError("enabling fragment profile");
-
-  cgSetMatrixParameterfr(myCgVertexParam_modelViewProj, myProjectionMatrix.p_);
-  cgUpdateProgramParameters(myCgVertexProgram);
-  cgUpdateProgramParameters(myCgFragmentProgram);
   drawRect();
-
-  cgGLDisableProfile(myCgVertexProfile);
-  checkForCgError("disabling vertex profile");
-
-  cgGLDisableProfile(myCgFragmentProfile);
-  checkForCgError("disabling fragment profile");
-
+  
+  vertexShader_->unbind();
+  fragmentShader_->unbind();
 
   SwapBuffers( dc );
 }
@@ -1176,7 +1345,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 #if USE_GL
 			// TODO: ï`âÊÉRÅ[ÉhÇÇ±Ç±Ç…í«â¡ÇµÇƒÇ≠ÇæÇ≥Ç¢...
 			wglMakeCurrent( hdc, glrc );
-			RenderGL( hdc );
+			RenderGL2( hdc );
 			wglMakeCurrent( hdc, 0 );
 #endif
 			EndPaint(hWnd, &ps);

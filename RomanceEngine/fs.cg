@@ -16,7 +16,6 @@ void C5E3f_basicLight(float4 position  : TEXCOORD0,
               uniform float3 Ks,
               uniform float  shininess)
 {
-/*
   float3 P = position.xyz;
   float3 N = normalize(normal);
 
@@ -40,6 +39,6 @@ void C5E3f_basicLight(float4 position  : TEXCOORD0,
 
   color.xyz = emissive + ambient + diffuse + specular;
   color.w = 1;
-  */
-  color.xyzw = float4(1, 0, 0, 0.3);
+  
+  //color.xyzw = float4(1, 0, 0, 0.3);
 }
