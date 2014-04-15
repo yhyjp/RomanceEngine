@@ -16,6 +16,12 @@ public:
     const Math::Float2& pos,
     const Math::Float2& size,
     const Math::Float4& color);
+
+  void drawLine(
+    RenderContext& rctx,
+    const Math::Float2& from,
+    const Math::Float2& to,
+    const Math::Float4& color);
 };
 
 } // RomanceEngine

@@ -491,7 +491,10 @@ static void drawRect()
 {
   glDepthMask(GL_FALSE);
   
-  primitiveRenderer_.drawRect(rctx_, Float2(100, 100), Float2(200, 200), Float4(1, 1, 1, 1));
+  primitiveRenderer_.drawRect(rctx_, Float2(100, 100), Float2(100, 100), Float4(1, 1, 1, 1));
+
+  glLineWidth(3);
+  primitiveRenderer_.drawLine(rctx_, Float2(100, 300), Float2(300, 300), Float4(1, 0, 0, 1));
 
   glDepthMask(GL_TRUE);
 }
