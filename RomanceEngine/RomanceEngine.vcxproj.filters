@@ -116,16 +116,16 @@
     <None Include="fs.cg">
       <Filter>shader</Filter>
     </None>
-    <None Include="shader\simple_v.cg">
-      <Filter>shader</Filter>
-    </None>
-    <None Include="shader\simple_f.cg">
-      <Filter>shader</Filter>
-    </None>
     <None Include="shader\tex_simple_v.cg">
       <Filter>shader</Filter>
     </None>
     <None Include="shader\tex_simple_f.cg">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\3d_simple_v.cg">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\3d_simple_f.cg">
       <Filter>shader</Filter>
     </None>
   </ItemGroup>
