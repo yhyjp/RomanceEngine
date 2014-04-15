@@ -9,6 +9,7 @@
 #include <RomanceEngine/Memory/shared_ptr.h>
 #include <RomanceEngine/Render/shader_manager.h>
 #include <RomanceEngine/Image/dds.h>
+#include <RomanceEngine/Render/render_context.h>
 
 using namespace std;
 using namespace RomanceEngine::Math;
@@ -135,13 +136,68 @@ static CGparameter myCgVertexParam_modelViewProj,
                    myCgFragmentParam_shininess;
 
 
+class GLRenderContext
+{
+public:
+  GLRenderContext()
+  {
+  }
 
+  virtual ~GLRenderContext()
+  {
+  }
 
-ShaderManager shaderManager_;
-VertexShaderPtr vertexShader_;
-FragmentShaderPtr fragmentShader_;
+  virtual void init()
+  {
+    context_ = cgCreateContext();
+    shaderManager_.reset(new ShaderManager());
+    shaderManager_->init(context_);
+  }
+
+  virtual ShaderManagerPtr& getShaderManager() { return shaderManager_; }
+  virtual FragmentShaderPtr& getFragmentShader() { return fragmentShader_; }
+  virtual VertexShaderPtr& getVertexShader() { return vertexShader_; }
+  virtual const ShaderManagerPtr& getShaderManager() const { return shaderManager_; }
+  virtual const FragmentShaderPtr& getFragmentShader() const { return fragmentShader_; }
+  virtual const VertexShaderPtr& getVertexShader() const { return vertexShader_; }
+
+  virtual void setFragmentShader(FragmentShaderPtr& value) { fragmentShader_ = value; }
+  virtual void setVertexShader(VertexShaderPtr& value) { vertexShader_ = value; }
+
+  virtual void renderBegin()
+  {
+    vertexShader_->bind();
+    fragmentShader_->bind();
+
+  }
+
+  virtual void shaderUpdate()
+  {
+    vertexShader_->update();
+    fragmentShader_->update();
+  }
+
+  virtual void renderEnd()
+  {
+    vertexShader_->unbind();
+    fragmentShader_->unbind();
+  }
+
+  virtual void setVertexArray() {}
+  virtual void setColorArray() {}
+  virtual void setTexcoordArray() {}
+  virtual void drawElements() {}
+
+private:
+  CGcontext context_;
+  ShaderManagerPtr shaderManager_;
+  VertexShaderPtr vertexShader_;
+  FragmentShaderPtr fragmentShader_;
+};
+
+GLRenderContext rctx_;
+
 DDSImage image_;
-CGcontext context_;
 
 static const char *myProgramName = "10_fragment_lighting",
                   *myVertexProgramFileName = "vs.cg",
@@ -230,13 +286,16 @@ bool initGL(HWND hwnd)
   glClearColor(0.1, 0.1, 0.1, 0);  /* Gray background. */
   glEnable(GL_DEPTH_TEST);         /* Hidden surface removal. */
   
-  context_ = cgCreateContext();
-  shaderManager_.init(context_);
+  rctx_.init();
 
-  vertexShader_ = shaderManager_.createVertexShader("shader/tex_simple_v.cg", "tex_simple_v_main");
-  vertexShader_->registParameter("modelViewProj");
-  fragmentShader_ = shaderManager_.createFragmentShader("shader/tex_simple_f.cg", "tex_simple_f_main");
-  fragmentShader_->registParameter("decal");
+  VertexShaderPtr vs = rctx_.getShaderManager()->createVertexShader("shader/tex_simple_v.cg", "tex_simple_v_main");
+  FragmentShaderPtr fs = rctx_.getShaderManager()->createFragmentShader("shader/tex_simple_f.cg", "tex_simple_f_main");
+  rctx_.setVertexShader(vs);
+  rctx_.setFragmentShader(fs);
+  vs->registParameter("modelViewProj");
+  fs->registParameter("decal");
+
+
 
   reshape(width, height);
 
@@ -252,7 +311,7 @@ bool initGL(HWND hwnd)
   }
 
   image_.Load("fish1.dds");
-  fragmentShader_->setParameterTexture("decal", image_.ID);
+  fs->setParameterTexture("decal", image_.ID);
 
   wglMakeCurrent( dc, 0 );
 
@@ -283,7 +342,7 @@ static void reshape(int width, int height)
 
 static const double myPi = 3.14159265358979323846;
 
-
+#if 0
 static void setBrassMaterial(void)
 {
   const float brassEmissive[3] = {0.0,  0.0,  0.0},
@@ -323,6 +382,7 @@ static void setEmissiveLightColorOnly(void)
   fragmentShader_->setParameterFloat3("Ks", zero);
   fragmentShader_->setParameterFloat1("shininess", 0);
 }
+#endif
 
 void ReleaseGL()
 {
@@ -433,7 +493,7 @@ static void drawRect()
   glDepthMask(GL_TRUE);
 }
 
-
+#if 0
 void RenderGL2( HDC dc )
 {
 
@@ -542,23 +602,20 @@ void RenderGL2( HDC dc )
 
   SwapBuffers( dc );
 }
+#endif
 
 void RenderGL( HDC dc )
 {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  vertexShader_->bind();
-  fragmentShader_->bind();
+  rctx_.renderBegin();
+  rctx_.getVertexShader()->setMatrixParameter("modelViewProj", myProjectionMatrix);
 
-  vertexShader_->setMatrixParameter("modelViewProj", myProjectionMatrix);
-
-  vertexShader_->update();
-  fragmentShader_->update();
+  rctx_.shaderUpdate();
 
   drawRect();
   
-  vertexShader_->unbind();
-  fragmentShader_->unbind();
+  rctx_.renderEnd();
 
   SwapBuffers( dc );
 }
