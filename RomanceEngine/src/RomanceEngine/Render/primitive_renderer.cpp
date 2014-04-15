@@ -35,7 +35,7 @@ void PrimitiveRenderer::drawRect(
   rctx.setVertexPointer(4, kRM_FLOAT, sizeof(float)*4, p);
   rctx.setColorPointer(4, kRM_FLOAT, sizeof(float)*4, c);
   rctx.setTexCoordPointer(2, kRM_FLOAT, sizeof(float)*2, t);
-  rctx.drawElements(GL_QUADS, 4, kRM_UNSIGNED_INT, idx);
+  rctx.drawElements(kRM_QUADS, 4, kRM_UNSIGNED_INT, idx);
 };
 
 } // RomanceEngine

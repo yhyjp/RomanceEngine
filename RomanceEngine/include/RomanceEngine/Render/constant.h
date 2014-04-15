@@ -8,7 +8,8 @@ namespace Render {
 // #ifdef GL ‚Æ‚©‚µ‚Ä‚¢‚­.  
 
 // DataType.
-enum {
+enum
+{
   kRM_BYTE                          = 0x1400,
   kRM_UNSIGNED_BYTE                 = 0x1401,
   kRM_SHORT                         = 0x1402,
@@ -20,6 +21,21 @@ enum {
   kRM_3_BYTES                       = 0x1408,
   kRM_4_BYTES                       = 0x1409,
   kRM_DOUBLE                        = 0x140A
+};
+
+// BeginMode.
+enum
+{
+  kRM_POINTS                         = 0x0000,
+  kRM_LINES                          = 0x0001,
+  kRM_LINE_LOOP                      = 0x0002,
+  kRM_LINE_STRIP                     = 0x0003,
+  kRM_TRIANGLES                      = 0x0004,
+  kRM_TRIANGLE_STRIP                 = 0x0005,
+  kRM_TRIANGLE_FAN                   = 0x0006,
+  kRM_QUADS                          = 0x0007,
+  kRML_QUAD_STRIP                    = 0x0008,
+  kRM_POLYGON                        = 0x0009
 };
 
 } // RomanceEngine
