@@ -4,9 +4,12 @@
 namespace RomanceEngine {
 namespace Render {
 
+class RenderContextPtr;
+
 class PrimitiveRenderer
 {
 public:
+  void drawRect();
 };
 
 } // RomanceEngine

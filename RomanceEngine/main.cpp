@@ -6,6 +6,7 @@
 #include <RomanceEngine/Math/vector_3d.h>
 #include <RomanceEngine/Math/matrix_4x4.h>
 #include <RomanceEngine/Math/constant.h>
+#include <RomanceEngine/Math/float1234.h>
 #include <RomanceEngine/Memory/shared_ptr.h>
 #include <RomanceEngine/Render/shader_manager.h>
 #include <RomanceEngine/Image/dds.h>
@@ -94,6 +95,17 @@ void sandbox()
 
     cout << Mat4::buildTranslate(2,3,4).multiply(y).asString() << endl;
 	}
+
+  cout << "-----------" << endl;
+
+  {
+    Float1 f1(1);
+    Float2 f2(2,3);
+    Float3 f3(4,5,6);
+    Float4 f4(7,8,9,10);
+    V v(f3);
+    cout << v.asString() << endl;
+  }
 	
 }
 
@@ -171,12 +183,6 @@ public:
 
   }
 
-  virtual void shaderUpdate()
-  {
-    vertexShader_->update();
-    fragmentShader_->update();
-  }
-
   virtual void renderEnd()
   {
     vertexShader_->unbind();
@@ -196,6 +202,8 @@ private:
 };
 
 GLRenderContext rctx_;
+VertexShaderPtr vs_;
+FragmentShaderPtr fs_;
 
 DDSImage image_;
 
@@ -288,12 +296,12 @@ bool initGL(HWND hwnd)
   
   rctx_.init();
 
-  VertexShaderPtr vs = rctx_.getShaderManager()->createVertexShader("shader/tex_simple_v.cg", "tex_simple_v_main");
-  FragmentShaderPtr fs = rctx_.getShaderManager()->createFragmentShader("shader/tex_simple_f.cg", "tex_simple_f_main");
-  rctx_.setVertexShader(vs);
-  rctx_.setFragmentShader(fs);
-  vs->registParameter("modelViewProj");
-  fs->registParameter("decal");
+  vs_ = rctx_.getShaderManager()->createVertexShader("shader/tex_simple_v.cg", "tex_simple_v_main");
+  fs_ = rctx_.getShaderManager()->createFragmentShader("shader/tex_simple_f.cg", "tex_simple_f_main");
+  rctx_.setVertexShader(vs_);
+  rctx_.setFragmentShader(fs_);
+  vs_->registParameter("modelViewProj");
+  fs_->registParameter("decal");
 
 
 
@@ -311,7 +319,7 @@ bool initGL(HWND hwnd)
   }
 
   image_.Load("fish1.dds");
-  fs->setParameterTexture("decal", image_.ID);
+  fs_->setParameterTexture("decal", image_.ID);
 
   wglMakeCurrent( dc, 0 );
 
@@ -609,9 +617,11 @@ void RenderGL( HDC dc )
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   rctx_.renderBegin();
-  rctx_.getVertexShader()->setMatrixParameter("modelViewProj", myProjectionMatrix);
 
-  rctx_.shaderUpdate();
+  vs_->setMatrixParameter("modelViewProj", myProjectionMatrix);
+  vs_->update();
+
+  fs_->update();
 
   drawRect();
   
@@ -621,6 +631,10 @@ void RenderGL( HDC dc )
 }
 #endif
 
+void clicked(const int mouseX, const int mouseY)
+{
+  cout << "clicked : (" << mouseX << ", " << mouseY << ")" << endl;
+}
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -631,6 +645,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
+  case WM_LBUTTONUP:
+    clicked(LOWORD(lParam), HIWORD(lParam));
+    break;
 	case WM_PAINT:
 		{
 			PAINTSTRUCT ps;

@@ -53,7 +53,7 @@ void FragmentShader::bind()
   cgGLEnableProfile(profile_);
   checkCgError(context_, "enabling fragment profile");
 
-  for (int i=0; i < texList_.size(); ++i)
+  for (int i=0; i < (int)texList_.size(); ++i)
   {
     cgGLEnableTextureParameter(texList_[i]);
     checkCgError(context_, "enabling decal texture");
@@ -65,7 +65,7 @@ void FragmentShader::unbind()
   cgGLDisableProfile(profile_);
   checkCgError(context_, "disabling fragment profile");
 
-  for (int i=0; i < texList_.size(); ++i)
+  for (int i=0; i < (int)texList_.size(); ++i)
   {
     cgGLDisableTextureParameter(texList_[i]);
     checkCgError(context_, "disabling decal texture");

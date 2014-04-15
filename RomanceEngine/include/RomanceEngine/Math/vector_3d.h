@@ -4,6 +4,7 @@
 #include <string>
 #include <cmath>
 #include <cassert>
+#include "float1234.h"
 
 namespace RomanceEngine {
 namespace Math {
@@ -32,6 +33,13 @@ public:
 		p_[2] = src[2];
     p_[3] = src[3];
 	}
+
+  Vector3D(const Float3& src)
+  {
+    p_[0] = src.x_;
+    p_[1] = src.y_;
+    p_[2] = src.z_;
+  }
 
   float& operator[](const int index)
   {

@@ -154,5 +154,8 @@
     <ClInclude Include="include\RomanceEngine\Render\primitive_renderer.h">
       <Filter>RomanceEngine\Header\Render</Filter>
     </ClInclude>
+    <ClInclude Include="include\RomanceEngine\Math\float1234.h">
+      <Filter>RomanceEngine\Header\Math</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
