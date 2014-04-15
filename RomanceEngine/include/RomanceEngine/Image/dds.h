@@ -74,9 +74,11 @@ public:
   uint32_t height;
   uint32_t bpp;
   uint32_t numMipmaps;
+  bool released_;
 
   DDSImage();
   ~DDSImage();
+  void release();
   uint32_t Load(const std::string& filename);
 
 private:

@@ -9,11 +9,22 @@ namespace Image {
 
 
 DDSImage::DDSImage()
+  : released_(true)
 {
 }
 
 DDSImage::~DDSImage()
 {
+  if (!released_)
+  {
+    release();
+  }
+}
+
+void DDSImage::release()
+{
+  released_ = true;
+  glDeleteTextures(1, &ID);
 }
 
 bool DDSImage::ReadDDS(const std::string& filename)
@@ -121,12 +132,15 @@ void DDSImage::DecompressDDS()
 
 uint32_t DDSImage::Load(const std::string& filename)
 {
+  if (released_ == false) return -1;
+
   //　ファイルの読み込み
   if (!ReadDDS(filename))
     return 0;
 
   //　テクスチャを生成
   glGenTextures(1, &ID);
+  released_ = false;
 
   //　テクスチャをバインド
   glBindTexture(GL_TEXTURE_2D, ID);

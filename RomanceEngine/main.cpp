@@ -251,6 +251,7 @@ bool initGL(HWND hwnd)
   }
 
   image_.Load("fish1.dds");
+  fragmentShader_->setParameterTexture("decal", image_.ID);
 
   wglMakeCurrent( dc, 0 );
 
@@ -544,13 +545,11 @@ void RenderGL2( HDC dc )
 void RenderGL( HDC dc )
 {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glActiveTexture(GL_TEXTURE0);
 
   vertexShader_->bind();
   fragmentShader_->bind();
 
   vertexShader_->setMatrixParameter("modelViewProj", myProjectionMatrix);
-  fragmentShader_->setParameterTexture("decal", image_.ID);
 
   vertexShader_->update();
   fragmentShader_->update();
@@ -679,6 +678,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 End:
 #if USE_DX
     CleanupDevice();
+#endif
+#if USE_GL
+    image_.release();
 #endif
 	FreeConsole();
 	return 0;
