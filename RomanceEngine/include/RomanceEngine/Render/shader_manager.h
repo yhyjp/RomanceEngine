@@ -6,6 +6,7 @@
 #include <string>
 #include "fragment_shader.h"
 #include "vertex_shader.h"
+#include <RomanceEngine/Memory/shared_ptr.h>
 
 namespace RomanceEngine {
 namespace Render {
@@ -15,7 +16,7 @@ class ShaderManager
 public:
   ShaderManager();
 
-  void init();
+  void init(const CGcontext context);
 
   VertexShaderPtr createVertexShader(const std::string& fileName, const std::string& programName);
   FragmentShaderPtr createFragmentShader(const std::string& fileName, const std::string& programName);
@@ -26,6 +27,7 @@ private:
   CGcontext context_;
   bool hasInit_;
 };
+typedef Memory::SharedPtr<ShaderManager> ShaderManagerPtr;
 
 
 

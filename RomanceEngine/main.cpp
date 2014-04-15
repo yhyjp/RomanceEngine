@@ -141,7 +141,7 @@ ShaderManager shaderManager_;
 VertexShaderPtr vertexShader_;
 FragmentShaderPtr fragmentShader_;
 DDSImage image_;
-
+CGcontext context_;
 
 static const char *myProgramName = "10_fragment_lighting",
                   *myVertexProgramFileName = "vs.cg",
@@ -229,8 +229,9 @@ bool initGL(HWND hwnd)
 
   glClearColor(0.1, 0.1, 0.1, 0);  /* Gray background. */
   glEnable(GL_DEPTH_TEST);         /* Hidden surface removal. */
-
-  shaderManager_.init();
+  
+  context_ = cgCreateContext();
+  shaderManager_.init(context_);
 
   vertexShader_ = shaderManager_.createVertexShader("shader/tex_simple_v.cg", "tex_simple_v_main");
   vertexShader_->registParameter("modelViewProj");

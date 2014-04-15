@@ -61,6 +61,18 @@
     <Filter Include="RomanceEngine\Header\RenderSystem">
       <UniqueIdentifier>{349422f1-a209-438e-9d24-628c65c939e1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="RomanceEngine\Header\GUI">
+      <UniqueIdentifier>{202de2c3-4f1d-4d96-be7b-2f54faccb87e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RomanceEngine\Source\GUI">
+      <UniqueIdentifier>{3d2071d5-054b-4594-942b-473c7392be07}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RomanceEngine\Header\RenderSystem\GL">
+      <UniqueIdentifier>{85ac2943-58a2-499b-a315-e63b3f016a41}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RomanceEngine\Source\RenderSystem\GL">
+      <UniqueIdentifier>{26d18038-b96c-4e6f-a6ed-9ce501c833ac}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -134,6 +146,12 @@
       <Filter>RomanceEngine\Header\Render</Filter>
     </ClInclude>
     <ClInclude Include="include\RomanceEngine\Render\fragment_shader.h">
+      <Filter>RomanceEngine\Header\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RomanceEngine\Render\render_context.h">
+      <Filter>RomanceEngine\Header\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RomanceEngine\Render\primitive_renderer.h">
       <Filter>RomanceEngine\Header\Render</Filter>
     </ClInclude>
   </ItemGroup>

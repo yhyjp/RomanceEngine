@@ -105,6 +105,8 @@
     <ClInclude Include="include\RomanceEngine\Math\vector_3d.h" />
     <ClInclude Include="include\RomanceEngine\Memory\shared_ptr.h" />
     <ClInclude Include="include\RomanceEngine\Render\fragment_shader.h" />
+    <ClInclude Include="include\RomanceEngine\Render\primitive_renderer.h" />
+    <ClInclude Include="include\RomanceEngine\Render\render_context.h" />
     <ClInclude Include="include\RomanceEngine\Render\shader_manager.h" />
     <ClInclude Include="include\RomanceEngine\Render\vertex_shader.h" />
   </ItemGroup>

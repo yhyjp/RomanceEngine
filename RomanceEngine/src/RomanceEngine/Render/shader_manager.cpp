@@ -8,10 +8,9 @@ ShaderManager::ShaderManager()
   : hasInit_(false)
 {}
 
-void ShaderManager::init()
+void ShaderManager::init(const CGcontext context)
 {
-  context_ = cgCreateContext();
-  checkCgError(context_, "creating context");
+  context_ = context;
 
   cgGLSetDebugMode(CG_FALSE);
   cgSetParameterSettingMode(context_, CG_DEFERRED_PARAMETER_SETTING);
