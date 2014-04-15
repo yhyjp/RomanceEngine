@@ -99,6 +99,9 @@
     <ClCompile Include="include\RomanceEngine\Image\dds.h">
       <Filter>RomanceEngine\Header\Image</Filter>
     </ClCompile>
+    <ClCompile Include="src\RomanceEngine\Render\primitive_renderer.cpp">
+      <Filter>RomanceEngine\Source\Render</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="none.fx">
@@ -156,6 +159,9 @@
     </ClInclude>
     <ClInclude Include="include\RomanceEngine\Math\float1234.h">
       <Filter>RomanceEngine\Header\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RomanceEngine\Render\constant.h">
+      <Filter>RomanceEngine\Header\Render</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

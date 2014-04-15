@@ -9,6 +9,7 @@
 #include <RomanceEngine/Math/float1234.h>
 #include <RomanceEngine/Memory/shared_ptr.h>
 #include <RomanceEngine/Render/shader_manager.h>
+#include <RomanceEngine/Render/primitive_renderer.h>
 #include <RomanceEngine/Image/dds.h>
 #include <RomanceEngine/Render/render_context.h>
 
@@ -148,7 +149,7 @@ static CGparameter myCgVertexParam_modelViewProj,
                    myCgFragmentParam_shininess;
 
 
-class GLRenderContext
+class GLRenderContext : public RenderContext
 {
 public:
   GLRenderContext()
@@ -181,18 +182,45 @@ public:
     vertexShader_->bind();
     fragmentShader_->bind();
 
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_COLOR_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
   }
 
   virtual void renderEnd()
   {
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_COLOR_ARRAY);
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
     vertexShader_->unbind();
     fragmentShader_->unbind();
   }
 
-  virtual void setVertexArray() {}
-  virtual void setColorArray() {}
-  virtual void setTexcoordArray() {}
-  virtual void drawElements() {}
+  virtual void setVertexPointer(const int32_t size, const uint32_t type, const uint32_t stride, const void* pointer)
+  {
+    glVertexPointer(size, type, stride, pointer);
+  }
+
+  virtual void setNormalPointer(const uint32_t type, const uint32_t stride, const void* pointer)
+  {
+    glNormalPointer(type, stride, pointer);
+  }
+
+  virtual void setColorPointer(const int32_t size, const uint32_t type, const uint32_t stride, const void* pointer)
+  {
+    glColorPointer(size, type, stride, pointer);
+  }
+
+  virtual void setTexCoordPointer(const int32_t size, const uint32_t type, const uint32_t stride, const void* pointer)
+  {
+    glTexCoordPointer(size, type, stride, pointer);
+  }
+
+  virtual void drawElements(const uint32_t mode, const uint32_t count, const uint32_t type, const void* indices)
+  {
+    glDrawElements(mode, count, type, indices);
+  }
 
 private:
   CGcontext context_;
@@ -204,6 +232,7 @@ private:
 GLRenderContext rctx_;
 VertexShaderPtr vs_;
 FragmentShaderPtr fs_;
+PrimitiveRenderer primitiveRenderer_;
 
 DDSImage image_;
 
@@ -390,7 +419,6 @@ static void setEmissiveLightColorOnly(void)
   fragmentShader_->setParameterFloat3("Ks", zero);
   fragmentShader_->setParameterFloat1("shininess", 0);
 }
-#endif
 
 void ReleaseGL()
 {
@@ -399,6 +427,7 @@ void ReleaseGL()
     //
     wglDeleteContext( glrc );
 }
+#endif
 
 void renderCube(const float size)
 {
@@ -462,42 +491,8 @@ static void drawRect()
 {
   glDepthMask(GL_FALSE);
   
-  float p[4*4] = {
-    100, 100, 2, 1,
-    100, 200, 2, 1,
-    200, 200, 2, 1,
-    200, 100, 2, 1,
-  };
+  primitiveRenderer_.drawRect(rctx_, Float2(100, 100), Float2(200, 200), Float4(1, 1, 1, 1));
 
-  float c[4*4] = {
-    1, 1, 1, 0,
-    1, 1, 1, 1,
-    1, 1, 1, 1,
-    1, 1, 1, 1,
-  };
-
-  float t[4*2] = {
-    0, 1,
-    0, 0,
-    1, 0,
-    1, 1,
-  };
-
-  uint32_t idx[4] = { 0, 1, 2, 3 };
-  
-  glEnableClientState(GL_VERTEX_ARRAY);
-  glEnableClientState(GL_COLOR_ARRAY);
-  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-
-  glVertexPointer(4, GL_FLOAT, 0, p);
-  glColorPointer(4, GL_FLOAT, 0, c);
-  glTexCoordPointer(2, GL_FLOAT, 0, t);
-  glDrawElements(GL_QUADS, 4, GL_UNSIGNED_INT, idx);
-
-  glDisableClientState(GL_VERTEX_ARRAY);
-  glDisableClientState(GL_COLOR_ARRAY);
-  glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-  
   glDepthMask(GL_TRUE);
 }
 

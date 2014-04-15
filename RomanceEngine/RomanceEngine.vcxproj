@@ -84,6 +84,7 @@
     <ClCompile Include="src\RomanceEngine\Math\matrix_4x4.cpp" />
     <ClCompile Include="src\RomanceEngine\Math\vector_3d.cpp" />
     <ClCompile Include="src\RomanceEngine\Render\fragment_shader.cpp" />
+    <ClCompile Include="src\RomanceEngine\Render\primitive_renderer.cpp" />
     <ClCompile Include="src\RomanceEngine\Render\shader_manager.cpp" />
     <ClCompile Include="src\RomanceEngine\Render\vertex_shader.cpp" />
   </ItemGroup>
@@ -105,6 +106,7 @@
     <ClInclude Include="include\RomanceEngine\Math\matrix_4x4.h" />
     <ClInclude Include="include\RomanceEngine\Math\vector_3d.h" />
     <ClInclude Include="include\RomanceEngine\Memory\shared_ptr.h" />
+    <ClInclude Include="include\RomanceEngine\Render\constant.h" />
     <ClInclude Include="include\RomanceEngine\Render\fragment_shader.h" />
     <ClInclude Include="include\RomanceEngine\Render\primitive_renderer.h" />
     <ClInclude Include="include\RomanceEngine\Render\render_context.h" />

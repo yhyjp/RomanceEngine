@@ -21,6 +21,7 @@ public:
   VertexShaderPtr createVertexShader(const std::string& fileName, const std::string& programName);
   FragmentShaderPtr createFragmentShader(const std::string& fileName, const std::string& programName);
 
+private:
   bool checkCgError(const CGcontext context, const std::string& situation);
 
 private:

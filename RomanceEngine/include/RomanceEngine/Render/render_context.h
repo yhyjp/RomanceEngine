@@ -18,12 +18,12 @@ class RenderContext
 public:
   virtual ~RenderContext() {}
 
-  virtual void init();
+  virtual void init() = 0;
 
-  virtual ShaderManagerPtr& getShaderManager();
+  virtual ShaderManagerPtr& getShaderManager() = 0;
   virtual FragmentShaderPtr& getFragmentShader() = 0;
   virtual VertexShaderPtr& getVertexShader() = 0;
-  virtual const ShaderManagerPtr& getShaderManager() const;
+  virtual const ShaderManagerPtr& getShaderManager() const = 0;
   virtual const FragmentShaderPtr& getFragmentShader() const = 0;
   virtual const VertexShaderPtr& getVertexShader() const = 0;
   virtual void setFragmentShader(FragmentShaderPtr& value) = 0;
@@ -32,10 +32,11 @@ public:
   virtual void renderBegin() = 0;
   virtual void renderEnd() = 0;
 
-  virtual void setVertexArray() = 0;
-  virtual void setColorArray() = 0;
-  virtual void setTexcoordArray() = 0;
-  virtual void drawElements() = 0;
+  virtual void setVertexPointer(const int32_t size, const uint32_t type, const uint32_t stride, const void* pointer) = 0;
+  virtual void setNormalPointer(const uint32_t type, const uint32_t stride, const void* pointer) = 0;
+  virtual void setColorPointer(const int32_t size, const uint32_t type, const uint32_t stride, const void* pointer) = 0;
+  virtual void setTexCoordPointer(const int32_t size, const uint32_t type, const uint32_t stride, const void* pointer) = 0;
+  virtual void drawElements(const uint32_t mode, const uint32_t count, const uint32_t type, const void* indices) = 0;
 };
 typedef Memory::SharedPtr<RenderContext> RenderContextPtr;
 
