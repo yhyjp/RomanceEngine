@@ -1,5 +1,4 @@
 // DDS Image.
-
 #ifndef __RM_IMAGE_DDS__D74BFAD7671B4890B8290100B48EC9AE__
 #define __RM_IMAGE_DDS__D74BFAD7671B4890B8290100B48EC9AE__
 
@@ -9,9 +8,9 @@
 namespace RomanceEngine {
 namespace Image {
   
-const uint32_t kFOURCC_DXT1 = (('D'<<24) | ('X'<<16) | ('T'<<8) | ('1'<<0));
-const uint32_t kFOURCC_DXT3 = (('D'<<24) | ('X'<<16) | ('T'<<8) | ('3'<<0));
-const uint32_t kFOURCC_DXT5 = (('D'<<24) | ('X'<<16) | ('T'<<8) | ('5'<<0));
+const uint32_t kFOURCC_DXT1 = (('D'<<0) | ('X'<<8) | ('T'<<16) | ('1'<<24));
+const uint32_t kFOURCC_DXT3 = (('D'<<0) | ('X'<<8) | ('T'<<16) | ('3'<<24));
+const uint32_t kFOURCC_DXT5 = (('D'<<0) | ('X'<<8) | ('T'<<16) | ('5'<<24));
 
 struct DDPixelFormat
 {

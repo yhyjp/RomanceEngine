@@ -1,7 +1,6 @@
 #include <iostream>
 #include <windows.h>
 #include <tchar.h>
-
 #include <GL/glew.h>
 
 #include <RomanceEngine/Math/vector_3d.h>
@@ -9,11 +8,13 @@
 #include <RomanceEngine/Math/constant.h>
 #include <RomanceEngine/Memory/shared_ptr.h>
 #include <RomanceEngine/Render/shader_manager.h>
+#include <RomanceEngine/Image/dds.h>
 
 using namespace std;
 using namespace RomanceEngine::Math;
 using namespace RomanceEngine::Memory;
 using namespace RomanceEngine::Render;
+using namespace RomanceEngine::Image;
 
 // warning C4996: 'freopen': This function or variable may be unsafe...
 #pragma warning (disable : 4996)
@@ -111,7 +112,6 @@ HWND                    g_hWnd = NULL;
 #include <Cg/cg.h>
 #include <Cg/cgGL.h>
 #include <GL/glut.h>
-#include <GL/glew.h>
 #pragma comment( lib, "opengl32.lib" )
 #pragma comment( lib, "cg.lib" )
 #pragma comment( lib, "cgGL.lib" )
@@ -140,6 +140,8 @@ static CGparameter myCgVertexParam_modelViewProj,
 ShaderManager shaderManager_;
 VertexShaderPtr vertexShader_;
 FragmentShaderPtr fragmentShader_;
+DDSImage image_;
+
 
 static const char *myProgramName = "10_fragment_lighting",
                   *myVertexProgramFileName = "vs.cg",
@@ -171,80 +173,90 @@ static void checkForCgError(const char *situation)
 
 bool initGL(HWND hwnd)
 {
-    HDC dc = GetDC( hwnd );
-    try
-    {
-        //
-        //ピクセルフォーマットの設定
-        //
-        PIXELFORMATDESCRIPTOR pfd =
-        { 
-            sizeof(PIXELFORMATDESCRIPTOR),   // size of this pfd 
-            1,                     // version number 
-            PFD_DRAW_TO_WINDOW |   // support window 
-            PFD_SUPPORT_OPENGL |   // support OpenGL 
-            PFD_DOUBLEBUFFER,      // double buffered 
-            PFD_TYPE_RGBA,         // RGBA type 
-            24,                    // 24-bit color depth 
-            0, 0, 0, 0, 0, 0,      // color bits ignored 
-            0,                     // no alpha buffer 
-            0,                     // shift bit ignored 
-            0,                     // no accumulation buffer 
-            0, 0, 0, 0,            // accum bits ignored 
-            32,                    // 32-bit z-buffer 
-            0,                     // no stencil buffer 
-            0,                     // no auxiliary buffer 
-            PFD_MAIN_PLANE,        // main layer 
-            0,                     // reserved 
-            0, 0, 0                // layer masks ignored 
-        };
-        int format = ChoosePixelFormat( dc, &pfd );
-        if( format == 0 )
-            throw "";
+  HDC dc = GetDC( hwnd );
+  try
+  {
+    //
+    //ピクセルフォーマットの設定
+    //
+    PIXELFORMATDESCRIPTOR pfd =
+    { 
+      sizeof(PIXELFORMATDESCRIPTOR),   // size of this pfd 
+      1,                     // version number 
+      PFD_DRAW_TO_WINDOW |   // support window 
+      PFD_SUPPORT_OPENGL |   // support OpenGL 
+      PFD_DOUBLEBUFFER,      // double buffered 
+      PFD_TYPE_RGBA,         // RGBA type 
+      24,                    // 24-bit color depth 
+      0, 0, 0, 0, 0, 0,      // color bits ignored 
+      0,                     // no alpha buffer 
+      0,                     // shift bit ignored 
+      0,                     // no accumulation buffer 
+      0, 0, 0, 0,            // accum bits ignored 
+      32,                    // 32-bit z-buffer 
+      0,                     // no stencil buffer 
+      0,                     // no auxiliary buffer 
+      PFD_MAIN_PLANE,        // main layer 
+      0,                     // reserved 
+      0, 0, 0                // layer masks ignored 
+    };
+    int format = ChoosePixelFormat( dc, &pfd );
+    if( format == 0 )
+      throw "";
 
-        if( !SetPixelFormat( dc, format, &pfd ) )
-            throw "";
+    if( !SetPixelFormat( dc, format, &pfd ) )
+      throw "";
 
-        //
-        //レンダリングコンテキスト作成
-        //
-        glrc = wglCreateContext( dc );
-        if( !glrc )
-            throw "";
-    }
-    catch( ... )
-    {
-        ReleaseDC( hwnd, dc );
-        return false;
-    }
-	
-    RECT rc;
-    GetClientRect( g_hWnd, &rc );
-    UINT width = rc.right - rc.left;
-    UINT height = rc.bottom - rc.top;
-
-    wglMakeCurrent( dc, glrc );
-
-    glClearColor(0.1, 0.1, 0.1, 0);  /* Gray background. */
-    glEnable(GL_DEPTH_TEST);         /* Hidden surface removal. */
-
-    shaderManager_.init();
-
-    vertexShader_ = shaderManager_.createVertexShader("shader/simple_v.cg", "simple_v_main");
-    vertexShader_->registParameter("modelViewProj");
-    fragmentShader_ = shaderManager_.createFragmentShader("shader/simple_f.cg", "simple_f_main");
-
-
-    reshape(width, height);
-  
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    
-    wglMakeCurrent( dc, 0 );
-    
+    //
+    //レンダリングコンテキスト作成
+    //
+    glrc = wglCreateContext( dc );
+    if( !glrc )
+      throw "";
+  }
+  catch( ... )
+  {
     ReleaseDC( hwnd, dc );
-    SendMessage( hwnd, WM_PAINT, 0, 0 );
-    return true;
+    return false;
+  }
+
+  RECT rc;
+  GetClientRect( g_hWnd, &rc );
+  UINT width = rc.right - rc.left;
+  UINT height = rc.bottom - rc.top;
+
+  wglMakeCurrent( dc, glrc );
+
+  glClearColor(0.1, 0.1, 0.1, 0);  /* Gray background. */
+  glEnable(GL_DEPTH_TEST);         /* Hidden surface removal. */
+
+  shaderManager_.init();
+
+  vertexShader_ = shaderManager_.createVertexShader("shader/tex_simple_v.cg", "tex_simple_v_main");
+  vertexShader_->registParameter("modelViewProj");
+  fragmentShader_ = shaderManager_.createFragmentShader("shader/tex_simple_f.cg", "tex_simple_f_main");
+  fragmentShader_->registParameter("decal");
+
+  reshape(width, height);
+
+  glEnable(GL_TEXTURE_2D);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+  glewExperimental=GL_TRUE;
+  if ( glewInit() != GLEW_OK )
+  {
+    printf("Error : GLEWの初期化に失敗しました\n");
+    return 0;
+  }
+
+  image_.Load("fish1.dds");
+
+  wglMakeCurrent( dc, 0 );
+
+  ReleaseDC( hwnd, dc );
+  SendMessage( hwnd, WM_PAINT, 0, 0 );
+  return true;
 }
 
 /* Forward declared routine used by reshape callback. */
@@ -379,19 +391,44 @@ void renderCube(const float size)
 static void drawRect()
 {
   glDepthMask(GL_FALSE);
+  
+  float p[4*4] = {
+    100, 100, 2, 1,
+    100, 200, 2, 1,
+    200, 200, 2, 1,
+    200, 100, 2, 1,
+  };
 
-  glBegin(GL_TRIANGLE_STRIP);
-  glVertex3f(100, 100, 2); glColor4f(1, 1, 1, 0.3);
-  glVertex3f(100, 200, 2); glColor4f(1, 1, 1, 1);
-  glVertex3f(200, 100, 2); glColor4f(1, 1, 1, 1);
-  glVertex3f(200, 200, 2); glColor4f(1, 1, 1, 1);
-  glEnd();
-  glBegin(GL_TRIANGLE_STRIP);
-  glVertex3f(150, 150, 2); glColor4f(1, 1, 1, 0.3);
-  glVertex3f(150, 250, 2); glColor4f(1, 1, 1, 1);
-  glVertex3f(250, 150, 2); glColor4f(1, 1, 1, 1);
-  glVertex3f(250, 250, 2); glColor4f(1, 1, 1, 1);
-  glEnd();
+  float c[4*4] = {
+    1, 1, 1, 0,
+    1, 1, 1, 1,
+    1, 1, 1, 1,
+    1, 1, 1, 1,
+  };
+
+  float t[4*2] = {
+    0, 1,
+    0, 0,
+    1, 0,
+    1, 1,
+  };
+
+  uint32_t idx[4] = { 0, 1, 2, 3 };
+  
+  glEnableClientState(GL_VERTEX_ARRAY);
+  glEnableClientState(GL_COLOR_ARRAY);
+  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+  glVertexPointer(4, GL_FLOAT, 0, p);
+  glColorPointer(4, GL_FLOAT, 0, c);
+  glTexCoordPointer(2, GL_FLOAT, 0, t);
+  glDrawElements(GL_QUADS, 4, GL_UNSIGNED_INT, idx);
+
+  glDisableClientState(GL_VERTEX_ARRAY);
+  glDisableClientState(GL_COLOR_ARRAY);
+  glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+  
+  glDepthMask(GL_TRUE);
 }
 
 
@@ -507,12 +544,14 @@ void RenderGL2( HDC dc )
 void RenderGL( HDC dc )
 {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glActiveTexture(GL_TEXTURE0);
 
   vertexShader_->bind();
   fragmentShader_->bind();
 
   vertexShader_->setMatrixParameter("modelViewProj", myProjectionMatrix);
-  
+  fragmentShader_->setParameterTexture("decal", image_.ID);
+
   vertexShader_->update();
   fragmentShader_->update();
 
@@ -604,15 +643,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 #if USE_GL
 	initGL(hWnd);
 #endif
-  
-  /*
-  glewExperimental=GL_TRUE;
-  if ( glewInit() != GLEW_OK )
-  {
-    printf("Error : GLEWの初期化に失敗しました\n");
-    return 0;
-  }
-  */
 
 	ShowWindow(hWnd, nCmdShow);
 

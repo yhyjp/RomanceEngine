@@ -94,6 +94,8 @@
     <None Include="none.cg" />
     <None Include="none.fx" />
     <None Include="shader\simple_f.cg" />
+    <None Include="shader\tex_simple_f.cg" />
+    <None Include="shader\tex_simple_v.cg" />
     <None Include="shader\simple_v.cg" />
     <None Include="vs.cg" />
   </ItemGroup>

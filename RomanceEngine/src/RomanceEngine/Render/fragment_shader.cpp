@@ -52,12 +52,24 @@ void FragmentShader::bind()
 
   cgGLEnableProfile(profile_);
   checkCgError(context_, "enabling fragment profile");
+
+  for (int i=0; i < texList_.size(); ++i)
+  {
+    cgGLEnableTextureParameter(texList_[i]);
+    checkCgError(context_, "enabling decal texture");
+  }
 }
 
 void FragmentShader::unbind()
 {
   cgGLDisableProfile(profile_);
   checkCgError(context_, "disabling fragment profile");
+
+  for (int i=0; i < texList_.size(); ++i)
+  {
+    cgGLDisableTextureParameter(texList_[i]);
+    checkCgError(context_, "disabling decal texture");
+  }
 }
 
 void FragmentShader::setParameterMatrix(const std::string& name, const Math::Matrix4x4& value)
@@ -111,6 +123,20 @@ void FragmentShader::setParameterFloat1(const std::string& name, const float val
   }
   cgSetParameter1f(parameters_[name], value);
   checkCgError(context_, "setting " + name + " parameter");
+}
+
+void FragmentShader::setParameterTexture(const std::string& name, const uint32_t id)
+{
+  std::map<std::string, CGparameter>::iterator it = parameters_.find(name);
+  if (it == parameters_.end())
+  {
+    printf("Error: parameter not registed > %s\n", name.c_str());
+    assert(false);
+  }
+  cgGLSetTextureParameter(parameters_[name], id);
+  checkCgError(context_, "setting " + name + " parameter");
+
+  texList_.push_back(it->second);
 }
 
 void FragmentShader::update()

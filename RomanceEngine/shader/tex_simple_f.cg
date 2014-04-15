@@ -1,0 +1,22 @@
+// 単純なシェーダ.
+
+struct FragmentIn
+{
+  float4 position : POSITION;
+  float4 color : COLOR;
+  float2 texcoord : TEXCOORD0;
+};
+
+struct FragmentOut
+{
+  float4 color : COLOR;
+};
+
+FragmentOut tex_simple_f_main(in FragmentIn input,
+                              uniform sampler2D decal : TEX0)
+{
+  FragmentOut output;
+  //output.color = input.color;
+  output.color = tex2D(decal, input.texcoord);
+  return output;
+}

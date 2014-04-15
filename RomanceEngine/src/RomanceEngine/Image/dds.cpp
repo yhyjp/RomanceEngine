@@ -7,6 +7,15 @@
 namespace RomanceEngine {
 namespace Image {
 
+
+DDSImage::DDSImage()
+{
+}
+
+DDSImage::~DDSImage()
+{
+}
+
 bool DDSImage::ReadDDS(const std::string& filename)
 {
   FILE *fp;
@@ -125,9 +134,6 @@ uint32_t DDSImage::Load(const std::string& filename)
   //　拡大・縮小する方法の指定
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-
-  //　テクスチャ環境の設定
-  glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
   //　解凍作業
   DecompressDDS();

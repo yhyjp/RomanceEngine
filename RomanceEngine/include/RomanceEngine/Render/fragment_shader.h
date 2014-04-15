@@ -4,7 +4,9 @@
 #include <Cg/cg.h>
 #include <Cg/cgGL.h>
 #include <map>
+#include <vector>
 #include <string>
+#include <cstdint>
 #include <RomanceEngine/Memory/shared_ptr.h>
 #include <RomanceEngine/Math/matrix_4x4.h>
 #include <RomanceEngine/Math/vector_3d.h>
@@ -29,6 +31,7 @@ public:
   void setParameterFloat3(const std::string& name, const float* value/*[3]*/);
   void setParameterFloat3(const std::string& name, const float value0, const float value1, const float value2);
   void setParameterFloat1(const std::string& name, const float value);
+  void setParameterTexture(const std::string& name, const uint32_t id);
 
 private:
   bool checkCgError(const CGcontext context, const std::string& situation);
@@ -41,6 +44,7 @@ private:
   CGprofile profile_;
   CGprogram program_;
   std::map<std::string, CGparameter> parameters_;
+  std::vector<CGparameter> texList_;
 };
 typedef Memory::SharedPtr<FragmentShader> FragmentShaderPtr;
 
