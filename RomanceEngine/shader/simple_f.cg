@@ -1,0 +1,19 @@
+// 単純なシェーダ.
+
+struct FragmentIn
+{
+  float4 position : POSITION;
+  float4 color : COLOR;
+};
+
+struct FragmentOut
+{
+  float4 color : COLOR;
+};
+
+FragmentOut simple_f_main(in FragmentIn input)
+{
+  FragmentOut output;
+  output.color = input.color;
+  return output;
+}

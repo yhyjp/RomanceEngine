@@ -39,8 +39,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\develop\boost_1_55_0\boost_1_55_0;$(ProjectDir)include;C:\Program Files\NVIDIA Corporation\Cg\include;$(DXSDK_DIR)Include;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include</IncludePath>
-    <LibraryPath>C:\Program Files\NVIDIA Corporation\Cg\lib;$(DXSDK_DIR)Lib\x86;$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib</LibraryPath>
+    <IncludePath>$(GLEW_PATH)\include;$(BOOST_PATH);$(ProjectDir)include;$(CG_INC_PATH);$(DXSDK_DIR)Include;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include</IncludePath>
+    <LibraryPath>$(GLEW_PATH)\lib\Release\Win32;$(CG_LIB_PATH);$(DXSDK_DIR)Lib\x86;$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib</LibraryPath>
     <ExecutablePath>$(DXSDK_DIR)Utilities\bin\x86;$(VCInstallDir)bin;$(WindowsSdkDir)bin\NETFX 4.0 Tools;$(WindowsSdkDir)bin;$(VSInstallDir)Common7\Tools\bin;$(VSInstallDir)Common7\tools;$(VSInstallDir)Common7\ide;$(ProgramFiles)\HTML Help Workshop;$(FrameworkSDKDir)\bin;$(MSBuildToolsPath32);$(VSInstallDir);$(SystemRoot)\SysWow64;$(FxCopDir);$(PATH);</ExecutablePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -78,7 +78,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="include\RomanceEngine\Image\dds.h" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="src\RomanceEngine\Image\dds.cpp" />
     <ClCompile Include="src\RomanceEngine\Math\matrix_4x4.cpp" />
     <ClCompile Include="src\RomanceEngine\Math\vector_3d.cpp" />
     <ClCompile Include="src\RomanceEngine\Render\fragment_shader.cpp" />
@@ -86,9 +88,13 @@
     <ClCompile Include="src\RomanceEngine\Render\vertex_shader.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="fs.cg" />
+    <None Include="fs.cg">
+      <FileType>Document</FileType>
+    </None>
     <None Include="none.cg" />
     <None Include="none.fx" />
+    <None Include="shader\simple_f.cg" />
+    <None Include="shader\simple_v.cg" />
     <None Include="vs.cg" />
   </ItemGroup>
   <ItemGroup>

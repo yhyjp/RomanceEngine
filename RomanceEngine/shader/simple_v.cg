@@ -1,0 +1,21 @@
+// 単純なシェーダ.
+
+struct VertexIn
+{
+  float4 position	: POSITION;
+  float4 color : COLOR;
+};
+
+struct VertexOut
+{
+  float4 position	: POSITION;
+  float4 color : COLOR;
+};
+
+VertexOut simple_v_main(in VertexIn input, uniform float4x4 modelViewProj)
+{
+  VertexOut output;
+  output.position =	mul(modelViewProj, input.position);
+  output.color = input.color;
+  return output;
+}

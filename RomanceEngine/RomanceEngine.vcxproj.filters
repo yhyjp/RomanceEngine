@@ -13,9 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Shader">
-      <UniqueIdentifier>{a305aa39-d9af-4970-87a1-b9f35b4da239}</UniqueIdentifier>
-    </Filter>
     <Filter Include="RomanceEngine">
       <UniqueIdentifier>{76ed7e6e-ddef-42f7-b9d9-9610bd7415c2}</UniqueIdentifier>
     </Filter>
@@ -43,6 +40,27 @@
     <Filter Include="RomanceEngine\Source\Render">
       <UniqueIdentifier>{74ffc0f2-2da1-4dc2-8825-a97bd8350c37}</UniqueIdentifier>
     </Filter>
+    <Filter Include="RomanceEngine\Source\Render\Particle">
+      <UniqueIdentifier>{9afcacd8-b73f-484f-a50d-87a7b4eb1719}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RomanceEngine\Header\Render\Particle">
+      <UniqueIdentifier>{363de90c-77de-44a0-961f-bc9606ed494f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="shader">
+      <UniqueIdentifier>{a305aa39-d9af-4970-87a1-b9f35b4da239}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RomanceEngine\Header\Image">
+      <UniqueIdentifier>{bfb3c490-347f-462f-9f40-025d7463032a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RomanceEngine\Source\Image">
+      <UniqueIdentifier>{4d555881-6cc3-4771-93bf-244e045218c1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RomanceEngine\Source\RenderSystem">
+      <UniqueIdentifier>{524037ab-e186-4cb6-a983-799843369b8a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RomanceEngine\Header\RenderSystem">
+      <UniqueIdentifier>{349422f1-a209-438e-9d24-628c65c939e1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -63,19 +81,31 @@
     <ClCompile Include="src\RomanceEngine\Render\vertex_shader.cpp">
       <Filter>RomanceEngine\Source\Render</Filter>
     </ClCompile>
+    <ClCompile Include="src\RomanceEngine\Image\dds.cpp">
+      <Filter>RomanceEngine\Source\Image</Filter>
+    </ClCompile>
+    <ClCompile Include="include\RomanceEngine\Image\dds.h">
+      <Filter>RomanceEngine\Header\Image</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="none.fx">
-      <Filter>Shader</Filter>
+      <Filter>shader</Filter>
     </None>
     <None Include="none.cg">
-      <Filter>Shader</Filter>
+      <Filter>shader</Filter>
     </None>
     <None Include="vs.cg">
-      <Filter>Shader</Filter>
+      <Filter>shader</Filter>
     </None>
     <None Include="fs.cg">
-      <Filter>Shader</Filter>
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\simple_v.cg">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\simple_f.cg">
+      <Filter>shader</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
