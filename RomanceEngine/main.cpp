@@ -460,6 +460,7 @@ bool initGL(HWND hwnd)
   wglMakeCurrent( dc, glrc );
 
   glClearColor(0.1, 0.1, 0.1, 0);  /* Gray background. */
+  glClearDepth(1);
   glEnable(GL_DEPTH_TEST);         /* Hidden surface removal. */
   
   rctx_ = RenderContextPtr(new GLRenderContext());
@@ -508,7 +509,7 @@ bool initGL(HWND hwnd)
     const int bufferW = 800;
     const int bufferH = 600;
 
-    glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
+    glPixelStorei( GL_UNPACK_ALIGNMENT, 4 );
     glGenTextures( 1, &fbuffer_texture_name );
     glBindTexture( GL_TEXTURE_2D, fbuffer_texture_name );
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
@@ -520,7 +521,17 @@ bool initGL(HWND hwnd)
                   0, GL_RGBA, GL_UNSIGNED_BYTE, 0 );
 
     //init render buffer.
-    glGenRenderbuffersEXT( 1, &renderbuffer_name );
+    glPixelStorei( GL_UNPACK_ALIGNMENT, 4 );
+    glGenTextures( 1, &renderbuffer_name );
+    glBindTexture( GL_TEXTURE_2D, renderbuffer_name );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+    glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+    glTexImage2D( GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, bufferW, bufferH,
+                    0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, 0 );
+    //glGenRenderbuffersEXT( 1, &renderbuffer_name );
     glBindRenderbufferEXT( GL_RENDERBUFFER_EXT, renderbuffer_name );
     glRenderbufferStorageEXT( GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT,
                               bufferW, bufferH );
@@ -531,8 +542,8 @@ bool initGL(HWND hwnd)
     
     glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT,
       GL_TEXTURE_2D, fbuffer_texture_name, 0 );
-    glFramebufferRenderbufferEXT( GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT,
-      GL_RENDERBUFFER_EXT, renderbuffer_name );
+    glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_DEPTH_STENCIL_ATTACHMENT,
+      GL_TEXTURE_2D, renderbuffer_name, 0 );
     
     glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, 0 );
     
@@ -855,7 +866,8 @@ void RenderGL( HDC dc )
   vs_tex_->update();
 
   // fs_tex update
-  fs_tex_->setParameterTexture("decal", fbuffer_texture_name);
+  //fs_tex_->setParameterTexture("decal", fbuffer_texture_name);
+  fs_tex_->setParameterTexture("decal", renderbuffer_name);
   fs_tex_->update();
 
   // vs update
