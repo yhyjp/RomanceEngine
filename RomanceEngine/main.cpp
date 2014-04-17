@@ -843,76 +843,77 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-	AllocConsole();
-	freopen("CONOUT$", "w", stdout); //標準出力をコンソールにする
-	freopen("CONIN$", "r", stdin);   //標準入力をコンソールにする
+  AllocConsole();
+  freopen("CONOUT$", "w", stdout); //標準出力をコンソールにする
+  freopen("CONIN$", "r", stdin);   //標準入力をコンソールにする
 
-	sandbox();
-  
-	//ウィンドウクラスを登録して
-	TCHAR szWindowClass[] = TEXT("RomanceEngine");
-	WNDCLASS wcex;
-	wcex.style			= CS_HREDRAW | CS_VREDRAW;
-	wcex.lpfnWndProc	= WndProc;
-	wcex.cbClsExtra		= 0;
-	wcex.cbWndExtra		= 0;
-	wcex.hInstance		= hInstance;
-	wcex.hIcon			= NULL;
-	wcex.hCursor		= NULL;
-	wcex.hbrBackground	= (HBRUSH)(COLOR_WINDOW+1);
-	wcex.lpszMenuName	= NULL;
-	wcex.lpszClassName	= szWindowClass;
-	RegisterClass(&wcex);
+  sandbox();
 
-	//ウィンドウをクリエイト
-	HWND hWnd;
-	g_hWnd = hWnd = CreateWindow(szWindowClass,
-        TEXT("RomanceEngine"),
-        WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
-        0,
-        0,
-        800,
-        600,
-        NULL,
-        NULL,
-        hInstance,
-        NULL);
+  //ウィンドウクラスを登録して
+  TCHAR szWindowClass[] = TEXT("RomanceEngine");
+  WNDCLASS wcex;
+  wcex.style			= CS_HREDRAW | CS_VREDRAW;
+  wcex.lpfnWndProc	= WndProc;
+  wcex.cbClsExtra		= 0;
+  wcex.cbWndExtra		= 0;
+  wcex.hInstance		= hInstance;
+  wcex.hIcon			= NULL;
+  wcex.hCursor		= NULL;
+  wcex.hbrBackground	= (HBRUSH)(COLOR_WINDOW+1);
+  wcex.lpszMenuName	= NULL;
+  wcex.lpszClassName	= szWindowClass;
+  RegisterClass(&wcex);
+
+  //ウィンドウをクリエイト
+  HWND hWnd;
+  g_hWnd = hWnd = CreateWindow(
+    szWindowClass,
+    TEXT("RomanceEngine"),
+    WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
+    0,
+    0,
+    800,
+    600,
+    NULL,
+    NULL,
+    hInstance,
+    NULL);
 
 #if USE_GL
-	initGL(hWnd);
+  initGL(hWnd);
 #endif
 
-	ShowWindow(hWnd, nCmdShow);
+  ShowWindow(hWnd, nCmdShow);
 
 
 #if USE_DX
-    if( FAILED( InitDevice() ) )
+  if( FAILED( InitDevice() ) )
+  {
+    CleanupDevice();
+    return 0;
+  }
+#endif
+
+  SetTimer( hWnd, TIMER_ID, TIMER_ELAPSE, NULL );
+
+  //メインループ
+  MSG hMsg;
+  while(true){
+    if (PeekMessageW(&hMsg, NULL, 0, 0, PM_REMOVE))
     {
-        CleanupDevice();
-        return 0;
+      if(hMsg.message == WM_QUIT){
+        goto End;
+      }
+      TranslateMessage(&hMsg);
+      DispatchMessage(&hMsg);
     }
-#endif
-
-	SetTimer( hWnd, TIMER_ID, TIMER_ELAPSE, NULL );
-
-	//メインループ
-	MSG hMsg;
-	while(true){
-		if (PeekMessageW(&hMsg, NULL, 0, 0, PM_REMOVE))
-		{
-			if(hMsg.message == WM_QUIT){
-				goto End;
-			}
-			TranslateMessage(&hMsg);
-			DispatchMessage(&hMsg);
-		}
-		else
-		{
+    else
+    {
 #if USE_DX
-            Render();
+      Render();
 #endif
-		}
-	}
+    }
+  }
 
 End:
 #if USE_DX
