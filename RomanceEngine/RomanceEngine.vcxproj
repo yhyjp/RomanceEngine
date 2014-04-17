@@ -53,6 +53,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>-D_SCL_SECURE_NO_WARNINGS %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -83,6 +84,10 @@
     <ClCompile Include="src\RomanceEngine\Image\dds.cpp" />
     <ClCompile Include="src\RomanceEngine\Math\matrix_4x4.cpp" />
     <ClCompile Include="src\RomanceEngine\Math\vector_3d.cpp" />
+    <ClCompile Include="src\RomanceEngine\RenderSystem\GL\gl_fragment_shader.cpp" />
+    <ClCompile Include="src\RomanceEngine\RenderSystem\GL\gl_render_context.cpp" />
+    <ClCompile Include="src\RomanceEngine\RenderSystem\GL\gl_shader_manager.cpp" />
+    <ClCompile Include="src\RomanceEngine\RenderSystem\GL\gl_vertex_shader.cpp" />
     <ClCompile Include="src\RomanceEngine\Render\fragment_shader.cpp" />
     <ClCompile Include="src\RomanceEngine\Render\primitive_renderer.cpp" />
     <ClCompile Include="src\RomanceEngine\Render\shader_manager.cpp" />
@@ -94,18 +99,23 @@
     </None>
     <None Include="none.cg" />
     <None Include="none.fx" />
-    <None Include="shader\3d_simple_f.cg" />
+    <None Include="shader\color_simple_f.cg" />
     <None Include="shader\tex_simple_f.cg" />
     <None Include="shader\tex_simple_v.cg" />
-    <None Include="shader\3d_simple_v.cg" />
+    <None Include="shader\color_simple_v.cg" />
     <None Include="vs.cg" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\RomanceEngine\Math\constant.h" />
     <ClInclude Include="include\RomanceEngine\Math\float1234.h" />
     <ClInclude Include="include\RomanceEngine\Math\matrix_4x4.h" />
+    <ClInclude Include="include\RomanceEngine\Math\rect.h" />
     <ClInclude Include="include\RomanceEngine\Math\vector_3d.h" />
     <ClInclude Include="include\RomanceEngine\Memory\shared_ptr.h" />
+    <ClInclude Include="include\RomanceEngine\RenderSystem\GL\gl_fragment_shader.h" />
+    <ClInclude Include="include\RomanceEngine\RenderSystem\GL\gl_render_context.h" />
+    <ClInclude Include="include\RomanceEngine\RenderSystem\GL\gl_shader_manager.h" />
+    <ClInclude Include="include\RomanceEngine\RenderSystem\GL\gl_vertex_shader.h" />
     <ClInclude Include="include\RomanceEngine\Render\constant.h" />
     <ClInclude Include="include\RomanceEngine\Render\fragment_shader.h" />
     <ClInclude Include="include\RomanceEngine\Render\primitive_renderer.h" />

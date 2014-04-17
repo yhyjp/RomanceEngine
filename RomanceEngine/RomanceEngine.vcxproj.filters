@@ -102,6 +102,18 @@
     <ClCompile Include="src\RomanceEngine\Render\primitive_renderer.cpp">
       <Filter>RomanceEngine\Source\Render</Filter>
     </ClCompile>
+    <ClCompile Include="src\RomanceEngine\RenderSystem\GL\gl_render_context.cpp">
+      <Filter>RomanceEngine\Source\RenderSystem\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RomanceEngine\RenderSystem\GL\gl_fragment_shader.cpp">
+      <Filter>RomanceEngine\Source\RenderSystem\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RomanceEngine\RenderSystem\GL\gl_vertex_shader.cpp">
+      <Filter>RomanceEngine\Source\RenderSystem\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RomanceEngine\RenderSystem\GL\gl_shader_manager.cpp">
+      <Filter>RomanceEngine\Source\RenderSystem\GL</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="none.fx">
@@ -122,10 +134,10 @@
     <None Include="shader\tex_simple_f.cg">
       <Filter>shader</Filter>
     </None>
-    <None Include="shader\3d_simple_v.cg">
+    <None Include="shader\color_simple_f.cg">
       <Filter>shader</Filter>
     </None>
-    <None Include="shader\3d_simple_f.cg">
+    <None Include="shader\color_simple_v.cg">
       <Filter>shader</Filter>
     </None>
   </ItemGroup>
@@ -162,6 +174,21 @@
     </ClInclude>
     <ClInclude Include="include\RomanceEngine\Render\constant.h">
       <Filter>RomanceEngine\Header\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RomanceEngine\RenderSystem\GL\gl_render_context.h">
+      <Filter>RomanceEngine\Header\RenderSystem\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RomanceEngine\RenderSystem\GL\gl_shader_manager.h">
+      <Filter>RomanceEngine\Header\RenderSystem\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RomanceEngine\RenderSystem\GL\gl_vertex_shader.h">
+      <Filter>RomanceEngine\Header\RenderSystem\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RomanceEngine\RenderSystem\GL\gl_fragment_shader.h">
+      <Filter>RomanceEngine\Header\RenderSystem\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RomanceEngine\Math\rect.h">
+      <Filter>RomanceEngine\Header\Math</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

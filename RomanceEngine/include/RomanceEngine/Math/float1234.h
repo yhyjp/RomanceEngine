@@ -13,6 +13,10 @@ namespace Math {
     Float1(const float x=0)
       : x_(x)
     {}
+    
+    Float1(const float* src/*[1]*/)
+      : x_(src[0])
+    {}
 
     const float& operator[](const int index) const
     {
@@ -37,6 +41,10 @@ namespace Math {
 
     explicit Float2(const Float1& f1, const float z=0)
       : x_(f1.x_), y_(0)
+    {}
+    
+    Float2(const float* src/*[2]*/)
+      : x_(src[0]), y_(src[1])
     {}
 
     const float& operator[](const int index) const
@@ -64,6 +72,10 @@ namespace Math {
 
     explicit Float3(const Float2& f2, const float z=0)
       : x_(f2.x_), y_(f2.y_), z_(0)
+    {}
+    
+    Float3(const float* src/*[3]*/)
+      : x_(src[0]), y_(src[1]), z_(src[2])
     {}
 
     const float& operator[](const int index) const
@@ -93,6 +105,10 @@ namespace Math {
 
     explicit Float4(const Float3& f3, const float w=0)
       : x_(f3.x_), y_(f3.y_), z_(f3.z_), w_(w)
+    {}
+
+    Float4(const float* src/*[4]*/)
+      : x_(src[0]), y_(src[1]), z_(src[2]), w_(src[3])
     {}
 
     const float& operator[](const int index) const

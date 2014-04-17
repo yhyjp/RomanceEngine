@@ -8,11 +8,11 @@ struct VertexIn
 
 struct VertexOut
 {
-  float4 position	: POSITION;
+  float4 position : POSITION;
   float4 color : COLOR;
 };
 
-VertexOut simple_v_main(in VertexIn input, uniform float4x4 modelViewProj)
+VertexOut color_simple_v_main(in VertexIn input, uniform float4x4 modelViewProj)
 {
   VertexOut output;
   output.position =	mul(modelViewProj, input.position);

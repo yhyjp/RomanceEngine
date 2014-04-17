@@ -1,4 +1,4 @@
-// 単純なシェーダ.
+// 単純な tex シェーダ.
 
 struct FragmentIn
 {
@@ -16,7 +16,6 @@ FragmentOut tex_simple_f_main(in FragmentIn input,
                               uniform sampler2D decal : TEX0)
 {
   FragmentOut output;
-  //output.color = input.color;
   output.color = tex2D(decal, input.texcoord);
   return output;
 }

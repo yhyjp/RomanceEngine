@@ -3,6 +3,9 @@
 #include <tchar.h>
 #include <GL/glew.h>
 
+#include <boost/signals2/signal.hpp>
+#include <boost/bind.hpp>
+
 #include <RomanceEngine/Math/vector_3d.h>
 #include <RomanceEngine/Math/matrix_4x4.h>
 #include <RomanceEngine/Math/constant.h>
@@ -39,7 +42,7 @@ public:
   }
 };
 
-void sandbox()
+void testMath()
 {
 	typedef RomanceEngine::Math::Vector3D V;
 	typedef RomanceEngine::Math::Matrix4x4 Mat4;
@@ -107,7 +110,11 @@ void sandbox()
     V v(f3);
     cout << v.asString() << endl;
   }
-	
+}
+
+void sandbox()
+{
+  testMath();
 }
 
 #define USE_GL 1
@@ -148,7 +155,7 @@ static CGparameter myCgVertexParam_modelViewProj,
                    myCgFragmentParam_Ks,
                    myCgFragmentParam_shininess;
 
-
+// 別ファイルへの以降はもう少し待つ.
 class GLRenderContext : public RenderContext
 {
 public:
@@ -168,20 +175,10 @@ public:
   }
 
   virtual ShaderManagerPtr& getShaderManager() { return shaderManager_; }
-  virtual FragmentShaderPtr& getFragmentShader() { return fragmentShader_; }
-  virtual VertexShaderPtr& getVertexShader() { return vertexShader_; }
   virtual const ShaderManagerPtr& getShaderManager() const { return shaderManager_; }
-  virtual const FragmentShaderPtr& getFragmentShader() const { return fragmentShader_; }
-  virtual const VertexShaderPtr& getVertexShader() const { return vertexShader_; }
-
-  virtual void setFragmentShader(FragmentShaderPtr& value) { fragmentShader_ = value; }
-  virtual void setVertexShader(VertexShaderPtr& value) { vertexShader_ = value; }
 
   virtual void renderBegin()
   {
-    vertexShader_->bind();
-    fragmentShader_->bind();
-
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_COLOR_ARRAY);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -192,9 +189,6 @@ public:
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_COLOR_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-
-    vertexShader_->unbind();
-    fragmentShader_->unbind();
   }
 
   virtual void setVertexPointer(const int32_t size, const uint32_t type, const uint32_t stride, const void* pointer)
@@ -225,14 +219,76 @@ public:
 private:
   CGcontext context_;
   ShaderManagerPtr shaderManager_;
-  VertexShaderPtr vertexShader_;
-  FragmentShaderPtr fragmentShader_;
 };
 
 GLRenderContext rctx_;
+VertexShaderPtr vs_tex_;
+FragmentShaderPtr fs_tex_;
 VertexShaderPtr vs_;
 FragmentShaderPtr fs_;
 PrimitiveRenderer primitiveRenderer_;
+
+namespace RomanceEngine {
+namespace GUI {
+
+class Button
+{
+public:
+  boost::signals2::signal<void(const Math::Float2&)> clicked_;
+
+  void click(const Math::Float2& p)
+  {
+    clicked_(p);
+  }
+
+};
+
+class GUIManager
+{
+public:
+
+};
+
+} // GUI
+} // RomanceEngine
+using namespace RomanceEngine::GUI;
+
+namespace {
+  enum {
+    kRM_SHADER_COLOR_SIMPLE=0,
+    kRM_SHADER_TEX_SIMPLE,
+
+    kRM_SHADER_N
+  };
+}
+
+#if 0
+// [WIP]
+class EmbededShaderSet
+{
+public:
+  void setup()
+  {
+
+  }
+
+  VertexShaderPtr& getVertexShader(const uint32_t enumShader)
+  {
+    assert(0<=enumShader && enumShader<kRM_SHADER_N);
+    return vertex_[enumShader];
+  }
+
+  FragmentShaderPtr& getFragmentShader(const uint32_t enumShader)
+  {
+    assert(0<=enumShader && enumShader<kRM_SHADER_N);
+    return fragment_[enumShader];
+  }
+
+private:
+  VertexShaderPtr vertex_[kRM_SHADER_N];
+  FragmentShaderPtr fragment_[kRM_SHADER_N];
+};
+#endif 
 
 DDSImage image_;
 
@@ -325,13 +381,14 @@ bool initGL(HWND hwnd)
   
   rctx_.init();
 
-  vs_ = rctx_.getShaderManager()->createVertexShader("shader/tex_simple_v.cg", "tex_simple_v_main");
-  fs_ = rctx_.getShaderManager()->createFragmentShader("shader/tex_simple_f.cg", "tex_simple_f_main");
-  rctx_.setVertexShader(vs_);
-  rctx_.setFragmentShader(fs_);
+  vs_ = rctx_.getShaderManager()->createVertexShader("shader/color_simple_v.cg", "color_simple_v_main");
+  fs_ = rctx_.getShaderManager()->createFragmentShader("shader/color_simple_f.cg", "color_simple_f_main");
   vs_->registParameter("modelViewProj");
-  fs_->registParameter("decal");
 
+  vs_tex_ = rctx_.getShaderManager()->createVertexShader("shader/tex_simple_v.cg", "tex_simple_v_main");
+  fs_tex_ = rctx_.getShaderManager()->createFragmentShader("shader/tex_simple_f.cg", "tex_simple_f_main");
+  vs_tex_->registParameter("modelViewProj");
+  fs_tex_->registParameter("decal");
 
 
   reshape(width, height);
@@ -348,7 +405,7 @@ bool initGL(HWND hwnd)
   }
 
   image_.Load("fish1.dds");
-  fs_->setParameterTexture("decal", image_.ID);
+  fs_tex_->setParameterTexture("decal", image_.ID);
 
   wglMakeCurrent( dc, 0 );
 
@@ -487,18 +544,6 @@ void renderCube(const float size)
 	glEnd();
 }
 
-static void drawRect()
-{
-  glDepthMask(GL_FALSE);
-  
-  primitiveRenderer_.drawRect(rctx_, Float2(100, 100), Float2(100, 100), Float4(1, 1, 1, 1));
-
-  glLineWidth(3);
-  primitiveRenderer_.drawLine(rctx_, Float2(100, 300), Float2(300, 300), Float4(1, 0, 0, 1));
-
-  glDepthMask(GL_TRUE);
-}
-
 #if 0
 void RenderGL2( HDC dc )
 {
@@ -616,22 +661,53 @@ void RenderGL( HDC dc )
 
   rctx_.renderBegin();
 
+  vs_tex_->setMatrixParameter("modelViewProj", myProjectionMatrix);
+  vs_tex_->update();
+  fs_tex_->update();
+
   vs_->setMatrixParameter("modelViewProj", myProjectionMatrix);
   vs_->update();
+  
+  glDepthMask(GL_FALSE);
+  
+  {
+    vs_tex_->bind();
+    fs_tex_->bind();
+    primitiveRenderer_.drawRect(rctx_, Float2(100, 100), Float2(100, 100), Float4(1, 1, 1, 1));
+    vs_tex_->unbind();
+    fs_tex_->unbind();
+  }
+  
+  {
+    vs_->bind();
+    fs_->bind();
+    glLineWidth(3);
+    primitiveRenderer_.drawRect(rctx_, Float2(300, 100), Float2(100, 100), Float4(0, 1, 0, 0.4));
+    primitiveRenderer_.drawRect(rctx_, Float2(350, 150), Float2(100, 100), Float4(0, 1, 0, 0.4));
+    primitiveRenderer_.drawLine(rctx_, Float2(100, 300), Float2(300, 350), Float4(1, 0, 0, 1));
+    vs_->unbind();
+    fs_->unbind();
+  }
 
-  fs_->update();
-
-  drawRect();
+  glDepthMask(GL_TRUE);
   
   rctx_.renderEnd();
 
   SwapBuffers( dc );
 }
+
 #endif
 
-void clicked(const int mouseX, const int mouseY)
+Button button;
+
+void clickedA(const Float2& p)
 {
-  cout << "clicked : (" << mouseX << ", " << mouseY << ")" << endl;
+  cout << "clickedA : (" << p.x_ << ", " << p.y_ << ")" << endl;
+}
+
+void clickedB(const Float2& p)
+{
+  cout << "clickedB : (" << p.x_ << ", " << p.y_ << ")" << endl;
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -644,14 +720,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		PostQuitMessage(0);
 		break;
   case WM_LBUTTONUP:
-    clicked(LOWORD(lParam), HIWORD(lParam));
+    button.click(Float2(LOWORD(lParam), HIWORD(lParam)));
     break;
 	case WM_PAINT:
 		{
 			PAINTSTRUCT ps;
 			HDC hdc = BeginPaint(hWnd, &ps);
 #if USE_GL
-			// TODO: 描画コードをここに追加してください...
 			wglMakeCurrent( hdc, glrc );
 			RenderGL( hdc );
 			wglMakeCurrent( hdc, 0 );
@@ -682,6 +757,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	freopen("CONIN$", "r", stdin);   //標準入力をコンソールにする
 
 	sandbox();
+  
+  button.clicked_.connect(clickedA);
+  button.clicked_.connect(clickedB);
 
 	//ウィンドウクラスを登録して
 	TCHAR szWindowClass[] = TEXT("RomanceEngine");

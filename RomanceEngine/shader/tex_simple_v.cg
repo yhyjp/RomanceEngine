@@ -1,4 +1,4 @@
-// 単純なシェーダ.
+// 単純な tex シェーダ.
 
 struct VertexIn
 {

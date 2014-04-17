@@ -41,6 +41,8 @@ public:
     p_[2] = src.z_;
   }
 
+  Float3 asFloat3() const { return Float3(p_); }
+
   float& operator[](const int index)
   {
     assert(0<=index && index < 4);

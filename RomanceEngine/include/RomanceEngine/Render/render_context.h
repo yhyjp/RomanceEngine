@@ -21,13 +21,7 @@ public:
   virtual void init() = 0;
 
   virtual ShaderManagerPtr& getShaderManager() = 0;
-  virtual FragmentShaderPtr& getFragmentShader() = 0;
-  virtual VertexShaderPtr& getVertexShader() = 0;
   virtual const ShaderManagerPtr& getShaderManager() const = 0;
-  virtual const FragmentShaderPtr& getFragmentShader() const = 0;
-  virtual const VertexShaderPtr& getVertexShader() const = 0;
-  virtual void setFragmentShader(FragmentShaderPtr& value) = 0;
-  virtual void setVertexShader(VertexShaderPtr& value) = 0;
 
   virtual void renderBegin() = 0;
   virtual void renderEnd() = 0;
