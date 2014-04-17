@@ -535,7 +535,7 @@ bool initGL(HWND hwnd)
       GL_RENDERBUFFER_EXT, renderbuffer_name );
     
     glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, 0 );
-
+    
     fs_tex_->setParameterTexture("decal", fbuffer_texture_name);
   }
 
@@ -554,11 +554,33 @@ void renderToTexture()
   glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 	
   rctx_->renderBegin();
+  
+  // vs_tex update.
+  vs_tex_->setMatrixParameter("modelViewProj", myProjectionMatrix);
+  vs_tex_->update();
+
+  // fs_tex update
+  fs_tex_->setParameterTexture("decal", image_.ID);
+  fs_tex_->update();
+
+  // vs_update
+  vs_->setMatrixParameter("modelViewProj", myProjectionMatrix);
+  vs_->update();
+
+  PrimitiveRenderer pr(rctx_);
+
+  {
+    vs_tex_->bind();
+    fs_tex_->bind();
+
+    pr.drawRect(Float2(10, 10), Float2(100, 100), Float4(1, 1, 1, 1), true);
+
+    vs_tex_->bind();
+    fs_tex_->unbind();
+  }
 
   // color shader.
   {
-    PrimitiveRenderer pr(rctx_);
-
     vs_->bind();
     fs_->bind();
 
@@ -827,11 +849,16 @@ void RenderGL( HDC dc )
   PrimitiveRenderer pr(rctx_);
 
   rctx_->renderBegin();
-
+  
+  // vs_tex update.
   vs_tex_->setMatrixParameter("modelViewProj", myProjectionMatrix);
   vs_tex_->update();
+
+  // fs_tex update
+  fs_tex_->setParameterTexture("decal", fbuffer_texture_name);
   fs_tex_->update();
 
+  // vs update
   vs_->setMatrixParameter("modelViewProj", myProjectionMatrix);
   vs_->update();
   
@@ -841,7 +868,9 @@ void RenderGL( HDC dc )
   {
     vs_tex_->bind();
     fs_tex_->bind();
-    pr.drawRect(Float2(10, 10), Float2(80*2, 60*2), Float4(1, 1, 1, 1));
+    
+    pr.drawRect(Float2(10, 10), Float2(80*3, 60*3), Float4(1, 1, 1, 1));
+
     vs_tex_->unbind();
     fs_tex_->unbind();
   }

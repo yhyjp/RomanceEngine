@@ -24,11 +24,13 @@ public:
   void drawRect(
     const Math::Float2& pos,
     const Math::Float2& size,
-    const Math::Float4& color);
+    const Math::Float4& color,
+    const bool flipV = false);
 
   void drawRect(
     const Math::Rect& rect,
-    const Math::Float4& color);
+    const Math::Float4& color,
+    const bool flipV = false);
 
   void drawLine(
     const Math::Float2& from,

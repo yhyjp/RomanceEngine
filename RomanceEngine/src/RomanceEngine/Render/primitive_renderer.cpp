@@ -19,7 +19,8 @@ PrimitiveRenderer::~PrimitiveRenderer()
 void PrimitiveRenderer::drawRect(
     const Math::Float2& pos,
     const Math::Float2& size,
-    const Math::Float4& color)
+    const Math::Float4& color,
+    const bool flipV)
 {
   assert(context_);
   const float p[4*4] = {
@@ -37,10 +38,10 @@ void PrimitiveRenderer::drawRect(
   };
 
   const float t[4*2] = {
-    0, 1,
-    0, 0,
-    1, 0,
-    1, 1,
+    0, (float)flipV,
+    0, (float)!flipV,
+    1, (float)!flipV,
+    1, (float)flipV,
   };
 
   const uint32_t idx[4] = { 0, 1, 2, 3 };
@@ -53,9 +54,10 @@ void PrimitiveRenderer::drawRect(
 
 void PrimitiveRenderer::drawRect(
     const Math::Rect& rect,
-    const Math::Float4& color)
+    const Math::Float4& color,
+    const bool flipV)
 {
-  drawRect(rect.pos_, rect.size_, color);
+  drawRect(rect.pos_, rect.size_, color, flipV);
 }
 
 void PrimitiveRenderer::drawLine(
