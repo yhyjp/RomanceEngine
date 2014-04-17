@@ -34,6 +34,8 @@ public:
   float right() const { return pos_.x_ + size_.x_; }
   float top() const { return pos_.y_; }
   float bottom() const { return pos_.y_ + size_.y_; }
+  float width() const { return size_.x_; }
+  float height() const { return size_.y_; }
 
   // ‚ ‚é“_‚ª‹éŒ`‚ÉŠÜ‚Ü‚ê‚é‚©.
   bool contains(const float px, const float py) const

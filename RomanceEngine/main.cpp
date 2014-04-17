@@ -274,7 +274,40 @@ public:
     PrimitiveRenderer renderer(context);
     renderer.drawRect(region_, Math::Float4(1, 1, 0, 0.5));
   }
+};
 
+class ValueBar : public GUIObject
+{
+public:
+  ValueBar(const float value=0.0f)
+    : value_(value)
+  {}
+
+  virtual ~ValueBar() {}
+
+  virtual void click(const Math::Float2& p)
+  {
+    GUIObject::click(p);
+    float w = getRegion().width();
+    float pos = p.x_ - getRegion().left();
+    value_ = pos / w;
+  }
+
+  virtual void render(const RenderContextPtr& context)
+  {
+    PrimitiveRenderer renderer(context);
+    renderer.drawRect(region_, Math::Float4(0.5, 0.5, 0.5, 1.0));
+
+    Math::Rect valueRect = region_;
+    valueRect.size_.x_ *= value_;
+    renderer.drawRect(valueRect, Math::Float4(0.3, 0.3, 0.8, 1.0));
+  }
+  
+  float getValue() const { return value_; }
+  void setValue(const float value) { value_ = value; }
+
+private:
+  float value_;
 };
 
 class GUIManager
@@ -493,16 +526,20 @@ bool initGL(HWND hwnd)
   fs_tex_->setParameterTexture("decal", image_.ID);
 
 
+  // GUI Test.
   {
     Button* b1 = new Button();
     Button* b2 = new Button();
+    ValueBar* vb1 = new ValueBar(0.3);
     b1->setRegion(Rect(400, 400, 50, 50));
     b2->setRegion(Rect(460, 400, 80, 80));
+    vb1->setRegion(Rect(20, 500, 200, 20));
     b1->clickEvent_.connect(clickA);
     b2->clickEvent_.connect(clickB);
 
     guiManager_.add(GUIObjectPtr(b1));
     guiManager_.add(GUIObjectPtr(b2));
+    guiManager_.add(GUIObjectPtr(vb1));
   }
 
   {
