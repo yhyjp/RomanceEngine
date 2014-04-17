@@ -29,6 +29,9 @@ using namespace RomanceEngine::Image;
 #define TIMER_ID     (100)      // 作成するタイマの識別ID.
 #define TIMER_ELAPSE (1000/60)     // WM_TIMERの発生間隔.
 
+#define WINDOW_WIDTH (800)
+#define WINDOW_HEIGHT (600)
+
 class Test
 {
 public:
@@ -155,6 +158,11 @@ static CGparameter myCgVertexParam_modelViewProj,
                    myCgFragmentParam_Kd,
                    myCgFragmentParam_Ks,
                    myCgFragmentParam_shininess;
+
+GLuint	fbuffer_texture_name;
+GLuint	renderbuffer_name;
+GLuint	framebuffer_name;
+
 
 // 別ファイルへの以降はもう少し待つ.
 class GLRenderContext : public RenderContext
@@ -496,12 +504,76 @@ bool initGL(HWND hwnd)
     guiManager_.add(GUIObjectPtr(b2));
   }
 
+  {
+    const int bufferW = 800;
+    const int bufferH = 600;
+
+    glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
+    glGenTextures( 1, &fbuffer_texture_name );
+    glBindTexture( GL_TEXTURE_2D, fbuffer_texture_name );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+    glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, bufferW, bufferH,
+                  0, GL_RGBA, GL_UNSIGNED_BYTE, 0 );
+
+    //init render buffer.
+    glGenRenderbuffersEXT( 1, &renderbuffer_name );
+    glBindRenderbufferEXT( GL_RENDERBUFFER_EXT, renderbuffer_name );
+    glRenderbufferStorageEXT( GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT,
+                              bufferW, bufferH );
+
+    // init frame buffer;
+    glGenFramebuffersEXT( 1, &framebuffer_name );
+    glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, framebuffer_name );
+    
+    glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT,
+      GL_TEXTURE_2D, fbuffer_texture_name, 0 );
+    glFramebufferRenderbufferEXT( GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT,
+      GL_RENDERBUFFER_EXT, renderbuffer_name );
+    
+    glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, 0 );
+
+    fs_tex_->setParameterTexture("decal", fbuffer_texture_name);
+  }
 
   wglMakeCurrent( dc, 0 );
 
   ReleaseDC( hwnd, dc );
   SendMessage( hwnd, WM_PAINT, 0, 0 );
   return true;
+}
+
+void renderToTexture()
+{
+	glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, framebuffer_name );
+  
+  glClearColor( 0.2, 0.3, 0.6, 1.0 );
+  glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+	
+  rctx_->renderBegin();
+
+  // color shader.
+  {
+    PrimitiveRenderer pr(rctx_);
+
+    vs_->bind();
+    fs_->bind();
+
+    glLineWidth(3);
+    pr.drawRect(Rect(300, 100, 100, 100), Float4(0, 1, 0, 0.4));
+    pr.drawRect(Float2(350, 150), Float2(100, 100), Float4(0, 1, 0, 0.4));
+    pr.drawLine(Float2(100, 300), Float2(300, 350), Float4(1, 0, 0, 1));
+
+    vs_->unbind();
+    fs_->unbind();
+  }
+
+  rctx_->renderEnd();
+
+	glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, 0 );
 }
 
 /* Forward declared routine used by reshape callback. */
@@ -747,6 +819,9 @@ void RenderGL2( HDC dc )
 
 void RenderGL( HDC dc )
 {
+  renderToTexture();
+  
+  glClearColor(0.1, 0.1, 0.1, 0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   
   PrimitiveRenderer pr(rctx_);
@@ -766,7 +841,7 @@ void RenderGL( HDC dc )
   {
     vs_tex_->bind();
     fs_tex_->bind();
-    pr.drawRect(Float2(100, 100), Float2(100, 100), Float4(1, 1, 1, 1));
+    pr.drawRect(Float2(10, 10), Float2(80*2, 60*2), Float4(1, 1, 1, 1));
     vs_tex_->unbind();
     fs_tex_->unbind();
   }
@@ -841,6 +916,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	return(DefWindowProc(hWnd, message, wParam, lParam));
 }
 
+BOOL setClientSize(const HWND hWnd, const int width, const int height)
+{
+	RECT rw, rc;
+	::GetWindowRect(hWnd, &rw);
+	::GetClientRect(hWnd, &rc);
+
+	int new_width = (rw.right - rw.left) - (rc.right - rc.left) + width;
+	int new_height = (rw.bottom - rw.top) - (rc.bottom - rc.top) + height;
+
+	return ::SetWindowPos(hWnd, NULL, 0, 0, new_width, new_height, SWP_NOMOVE | SWP_NOZORDER);
+}
+
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
   AllocConsole();
@@ -878,6 +965,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     NULL,
     hInstance,
     NULL);
+  
+  setClientSize(hWnd, WINDOW_WIDTH, WINDOW_HEIGHT);
 
 #if USE_GL
   initGL(hWnd);
