@@ -12,22 +12,31 @@ namespace Render {
 class PrimitiveRenderer
 {
 public:
+  PrimitiveRenderer();
+  PrimitiveRenderer(const RenderContextPtr& context);
+  ~PrimitiveRenderer();
+  
+  RenderContextPtr& getRenderContext() { return context_; }
+  const RenderContextPtr& getRenderContext() const { return context_; }
+
+  void setRenderContext(const RenderContextPtr& context) { context_; }
+
   void drawRect(
-    RenderContext& rctx,
     const Math::Float2& pos,
     const Math::Float2& size,
     const Math::Float4& color);
 
   void drawRect(
-    RenderContext& rctx,
     const Math::Rect& rect,
     const Math::Float4& color);
 
   void drawLine(
-    RenderContext& rctx,
     const Math::Float2& from,
     const Math::Float2& to,
     const Math::Float4& color);
+
+private:
+  RenderContextPtr context_;
 };
 
 } // RomanceEngine

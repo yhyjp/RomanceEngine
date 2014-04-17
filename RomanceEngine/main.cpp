@@ -222,40 +222,110 @@ private:
   ShaderManagerPtr shaderManager_;
 };
 
-GLRenderContext rctx_;
+RenderContextPtr rctx_;
 VertexShaderPtr vs_tex_;
 FragmentShaderPtr fs_tex_;
 VertexShaderPtr vs_;
 FragmentShaderPtr fs_;
-PrimitiveRenderer primitiveRenderer_;
 
 namespace RomanceEngine {
 namespace GUI {
 
-class Button
+class GUIObject
 {
 public:
-  boost::signals2::signal<void(const Math::Float2&)> clicked_;
+  GUIObject() {}
+  virtual ~GUIObject() {};
 
-  void click(const Math::Float2& p)
+  virtual Math::Rect getRegion() const { return region_; }
+  virtual void setRegion(const Math::Rect& region) { region_ = region; }
+
+  virtual void click(const Math::Float2& p)
   {
-    clicked_(p);
+    clickEvent_(p);
+  };
+
+  virtual void render(const RenderContextPtr& context) {};
+  virtual void update() {};
+
+public:
+  boost::signals2::signal<void(const Math::Float2&)> clickEvent_;
+
+protected:
+  Math::Rect region_;
+};
+typedef Memory::SharedPtr<GUIObject> GUIObjectPtr;
+
+class Button : public GUIObject
+{
+public:
+  virtual ~Button() {}
+
+  virtual void render(const RenderContextPtr& context)
+  {
+    PrimitiveRenderer renderer(context);
+    renderer.drawRect(region_, Math::Float4(1, 1, 0, 0.5));
   }
 
-  Math::Rect getRegion() const { return region_; }
-
-  Math::Rect region_;
 };
 
 class GUIManager
 {
 public:
+  GUIManager() {}
+  ~GUIManager() {}
 
+  void update()
+  {
+    for (int i=0; i < (int)objects_.size(); ++i)
+    {
+      objects_[i]->update();
+    }
+  }
+
+  void render(const RenderContextPtr& context)
+  {
+    for (int i=0; i < (int)objects_.size(); ++i)
+    {
+      objects_[i]->render(context);
+    }
+  }
+
+  void add(const GUIObjectPtr& obj)
+  {
+    objects_.push_back(obj);
+  }
+
+  void click(const Math::Float2& p)
+  {
+    cout << p.x_ << ", " << p.y_ << endl;
+    for (int i=0; i < (int)objects_.size(); ++i)
+    {
+      if (objects_[i]->getRegion().contains(p))
+      {
+        objects_[i]->click(p);
+        break;
+      }
+    }
+  }
+
+private:
+  std::vector<GUIObjectPtr> objects_;
 };
 
 } // GUI
 } // RomanceEngine
 using namespace RomanceEngine::GUI;
+
+void clickA(const Float2& p)
+{
+  cout << "clickedA : (" << p.x_ << ", " << p.y_ << ")" << endl;
+}
+
+void clickB(const Float2& p)
+{
+  cout << "clickedB : (" << p.x_ << ", " << p.y_ << ")" << endl;
+}
 
 namespace {
   enum {
@@ -295,6 +365,7 @@ private:
 #endif 
 
 DDSImage image_;
+GUIManager guiManager_;
 
 static const char *myProgramName = "10_fragment_lighting",
                   *myVertexProgramFileName = "vs.cg",
@@ -383,14 +454,15 @@ bool initGL(HWND hwnd)
   glClearColor(0.1, 0.1, 0.1, 0);  /* Gray background. */
   glEnable(GL_DEPTH_TEST);         /* Hidden surface removal. */
   
-  rctx_.init();
+  rctx_ = RenderContextPtr(new GLRenderContext());
+  rctx_->init();
 
-  vs_ = rctx_.getShaderManager()->createVertexShader("shader/color_simple_v.cg", "color_simple_v_main");
-  fs_ = rctx_.getShaderManager()->createFragmentShader("shader/color_simple_f.cg", "color_simple_f_main");
+  vs_ = rctx_->getShaderManager()->createVertexShader("shader/color_simple_v.cg", "color_simple_v_main");
+  fs_ = rctx_->getShaderManager()->createFragmentShader("shader/color_simple_f.cg", "color_simple_f_main");
   vs_->registParameter("modelViewProj");
 
-  vs_tex_ = rctx_.getShaderManager()->createVertexShader("shader/tex_simple_v.cg", "tex_simple_v_main");
-  fs_tex_ = rctx_.getShaderManager()->createFragmentShader("shader/tex_simple_f.cg", "tex_simple_f_main");
+  vs_tex_ = rctx_->getShaderManager()->createVertexShader("shader/tex_simple_v.cg", "tex_simple_v_main");
+  fs_tex_ = rctx_->getShaderManager()->createFragmentShader("shader/tex_simple_f.cg", "tex_simple_f_main");
   vs_tex_->registParameter("modelViewProj");
   fs_tex_->registParameter("decal");
 
@@ -410,6 +482,20 @@ bool initGL(HWND hwnd)
 
   image_.Load("fish1.dds");
   fs_tex_->setParameterTexture("decal", image_.ID);
+
+
+  {
+    Button* b1 = new Button();
+    Button* b2 = new Button();
+    b1->setRegion(Rect(400, 400, 50, 50));
+    b2->setRegion(Rect(460, 400, 80, 80));
+    b1->clickEvent_.connect(clickA);
+    b2->clickEvent_.connect(clickB);
+
+    guiManager_.add(GUIObjectPtr(b1));
+    guiManager_.add(GUIObjectPtr(b2));
+  }
+
 
   wglMakeCurrent( dc, 0 );
 
@@ -662,8 +748,10 @@ void RenderGL2( HDC dc )
 void RenderGL( HDC dc )
 {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  
+  PrimitiveRenderer pr(rctx_);
 
-  rctx_.renderBegin();
+  rctx_->renderBegin();
 
   vs_tex_->setMatrixParameter("modelViewProj", myProjectionMatrix);
   vs_tex_->update();
@@ -674,48 +762,47 @@ void RenderGL( HDC dc )
   
   glDepthMask(GL_FALSE);
   
+  // tex shader.
   {
     vs_tex_->bind();
     fs_tex_->bind();
-    primitiveRenderer_.drawRect(rctx_, Float2(100, 100), Float2(100, 100), Float4(1, 1, 1, 1));
+    pr.drawRect(Float2(100, 100), Float2(100, 100), Float4(1, 1, 1, 1));
     vs_tex_->unbind();
     fs_tex_->unbind();
   }
   
+  // color shader.
   {
     vs_->bind();
     fs_->bind();
     glLineWidth(3);
-    primitiveRenderer_.drawRect(rctx_, Rect(300, 100, 100, 100), Float4(0, 1, 0, 0.4));
-    primitiveRenderer_.drawRect(rctx_, Float2(350, 150), Float2(100, 100), Float4(0, 1, 0, 0.4));
-    primitiveRenderer_.drawLine(rctx_, Float2(100, 300), Float2(300, 350), Float4(1, 0, 0, 1));
+    pr.drawRect(Rect(300, 100, 100, 100), Float4(0, 1, 0, 0.4));
+    pr.drawRect(Float2(350, 150), Float2(100, 100), Float4(0, 1, 0, 0.4));
+    pr.drawLine(Float2(100, 300), Float2(300, 350), Float4(1, 0, 0, 1));
+
+    guiManager_.render(rctx_);
+
     vs_->unbind();
     fs_->unbind();
   }
-
+  
   glDepthMask(GL_TRUE);
   
-  rctx_.renderEnd();
+  rctx_->renderEnd();
 
   SwapBuffers( dc );
 }
 
 #endif
 
-Button button;
-
-void clickedA(const Float2& p)
-{
-  cout << "clickedA : (" << p.x_ << ", " << p.y_ << ")" << endl;
-}
-
-void clickedB(const Float2& p)
-{
-  cout << "clickedB : (" << p.x_ << ", " << p.y_ << ")" << endl;
-}
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+  RECT rc;
+  GetClientRect( g_hWnd, &rc );
+  const UINT width = rc.right - rc.left;
+  const UINT height = rc.bottom - rc.top;
+
 	switch(message){
 	case WM_CLOSE:
 		PostMessage(hWnd, WM_DESTROY, 0, 0);
@@ -724,7 +811,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		PostQuitMessage(0);
 		break;
   case WM_LBUTTONUP:
-    button.click(Float2(LOWORD(lParam), HIWORD(lParam)));
+    guiManager_.click(Float2(LOWORD(lParam), height-HIWORD(lParam)));
     break;
 	case WM_PAINT:
 		{
@@ -762,9 +849,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	sandbox();
   
-  button.clicked_.connect(clickedA);
-  button.clicked_.connect(clickedB);
-
 	//ウィンドウクラスを登録して
 	TCHAR szWindowClass[] = TEXT("RomanceEngine");
 	WNDCLASS wcex;
