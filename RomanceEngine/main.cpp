@@ -15,6 +15,7 @@
 #include <RomanceEngine/Render/primitive_renderer.h>
 #include <RomanceEngine/Image/dds.h>
 #include <RomanceEngine/Render/render_context.h>
+#include <RomanceEngine/Math/rect.h>
 
 using namespace std;
 using namespace RomanceEngine::Math;
@@ -241,6 +242,9 @@ public:
     clicked_(p);
   }
 
+  Math::Rect getRegion() const { return region_; }
+
+  Math::Rect region_;
 };
 
 class GUIManager
@@ -682,7 +686,7 @@ void RenderGL( HDC dc )
     vs_->bind();
     fs_->bind();
     glLineWidth(3);
-    primitiveRenderer_.drawRect(rctx_, Float2(300, 100), Float2(100, 100), Float4(0, 1, 0, 0.4));
+    primitiveRenderer_.drawRect(rctx_, Rect(300, 100, 100, 100), Float4(0, 1, 0, 0.4));
     primitiveRenderer_.drawRect(rctx_, Float2(350, 150), Float2(100, 100), Float4(0, 1, 0, 0.4));
     primitiveRenderer_.drawLine(rctx_, Float2(100, 300), Float2(300, 350), Float4(1, 0, 0, 1));
     vs_->unbind();

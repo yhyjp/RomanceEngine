@@ -18,6 +18,10 @@ namespace Math {
 class Rect
 {
 public:
+  Rect()
+    : pos_(), size_()
+  {}
+
   Rect(const float x, const float y, const float w, const float h)
     : pos_(x, y), size_(w, h)
   {}

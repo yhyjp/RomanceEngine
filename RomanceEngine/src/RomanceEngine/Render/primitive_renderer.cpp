@@ -38,6 +38,14 @@ void PrimitiveRenderer::drawRect(
   rctx.drawElements(kRM_QUADS, 4, kRM_UNSIGNED_INT, idx);
 };
 
+void PrimitiveRenderer::drawRect(
+    RenderContext& rctx,
+    const Math::Rect& rect,
+    const Math::Float4& color)
+{
+  drawRect(rctx, rect.pos_, rect.size_, color);
+}
+
 void PrimitiveRenderer::drawLine(
   RenderContext& rctx,
   const Math::Float2& from,

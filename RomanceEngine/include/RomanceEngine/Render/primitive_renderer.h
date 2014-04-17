@@ -2,6 +2,7 @@
 #define __RM_RENDER_PRIMITIVE_RENDERER__6C5B90FAD627469C9A81736EA5563216__
 
 #include <RomanceEngine/Math/float1234.h>
+#include <RomanceEngine/Math/rect.h>
 #include "render_context.h"
 #include "constant.h"
 
@@ -15,6 +16,11 @@ public:
     RenderContext& rctx,
     const Math::Float2& pos,
     const Math::Float2& size,
+    const Math::Float4& color);
+
+  void drawRect(
+    RenderContext& rctx,
+    const Math::Rect& rect,
     const Math::Float4& color);
 
   void drawLine(
