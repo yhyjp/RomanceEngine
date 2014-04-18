@@ -143,21 +143,6 @@ HWND                    g_hWnd = NULL;
 #pragma comment( lib, "glew32.lib" )
 
 HGLRC glrc;
-static CGcontext   myCgContext;
-static CGprofile   myCgVertexProfile,
-                   myCgFragmentProfile;
-static CGprogram   myCgVertexProgram,
-                   myCgFragmentProgram;
-static CGparameter myCgVertexParam_modelViewProj,
-                   myCgFragmentParam_globalAmbient,
-                   myCgFragmentParam_lightColor,
-                   myCgFragmentParam_lightPosition,
-                   myCgFragmentParam_eyePosition,
-                   myCgFragmentParam_Ke,
-                   myCgFragmentParam_Ka,
-                   myCgFragmentParam_Kd,
-                   myCgFragmentParam_Ks,
-                   myCgFragmentParam_shininess;
 
 GLuint	fbuffer_texture_name;
 GLuint	renderbuffer_name;
@@ -339,7 +324,6 @@ public:
 
   void click(const Math::Float2& p)
   {
-    cout << p.x_ << ", " << p.y_ << endl;
     for (int i=0; i < (int)objects_.size(); ++i)
     {
       if (objects_[i]->getRegion().contains(p))
@@ -420,21 +404,6 @@ static float myGlobalAmbient[3] = { 0.1, 0.1, 0.1 };  /* Dim */
 static float myLightColor[3] = { 0.95, 0.95, 0.95 }; 
 
 static void reshape(int width, int height);
-
-static void checkForCgError(const char *situation)
-{
-  CGerror error;
-  const char *string = cgGetLastErrorString(&error);
-
-  if (error != CG_NO_ERROR) {
-    printf("%s: %s: %s\n",
-      myProgramName, situation, string);
-    if (error == CG_COMPILER_ERROR) {
-      printf("%s\n", cgGetLastListing(myCgContext));
-    }
-    exit(1);
-  }
-}
 
 bool initGL(HWND hwnd)
 {
@@ -646,12 +615,6 @@ void renderToTexture()
 	glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, 0 );
 }
 
-/* Forward declared routine used by reshape callback. */
-static void buildPerspectiveMatrix(double fieldOfView,
-                                   double aspectRatio,
-                                   double zMin, double zMax,
-                                   float m[16]);
-
 static void reshape(int width, int height)
 {
   double aspectRatio = (float) width / (float) height;
@@ -665,8 +628,6 @@ static void reshape(int width, int height)
   
   glViewport(0, 0, width, height);
 }
-
-static const double myPi = 3.14159265358979323846;
 
 #if 0
 static void setBrassMaterial(void)
@@ -903,8 +864,8 @@ void RenderGL( HDC dc )
   vs_tex_->update();
 
   // fs_tex update
-  //fs_tex_->setParameterTexture("decal", fbuffer_texture_name);
-  fs_tex_->setParameterTexture("decal", renderbuffer_name);
+  fs_tex_->setParameterTexture("decal", fbuffer_texture_name);
+  //fs_tex_->setParameterTexture("decal", renderbuffer_name);
   fs_tex_->update();
 
   // vs update
@@ -983,8 +944,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
       break;
     }
     myLightAngle += 0.008;  /* Add a small angle (in radians). */
-    if (myLightAngle > 2*myPi) {
-      myLightAngle -= 2*myPi;
+    if (myLightAngle > 2*kRM_PI) {
+      myLightAngle -= 2*kRM_PI;
     }
 		InvalidateRect( hWnd, NULL, FALSE );
 

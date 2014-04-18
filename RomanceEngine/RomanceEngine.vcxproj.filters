@@ -140,6 +140,12 @@
     <None Include="shader\color_simple_v.cg">
       <Filter>shader</Filter>
     </None>
+    <None Include="shader\light_simple_v.cg">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\light_simple_f.cg">
+      <Filter>shader</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\RomanceEngine\Math\vector_3d.h">

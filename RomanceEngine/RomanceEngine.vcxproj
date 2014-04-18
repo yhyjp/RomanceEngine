@@ -100,6 +100,8 @@
     <None Include="none.cg" />
     <None Include="none.fx" />
     <None Include="shader\color_simple_f.cg" />
+    <None Include="shader\light_simple_f.cg" />
+    <None Include="shader\light_simple_v.cg" />
     <None Include="shader\tex_simple_f.cg" />
     <None Include="shader\tex_simple_v.cg" />
     <None Include="shader\color_simple_v.cg" />
