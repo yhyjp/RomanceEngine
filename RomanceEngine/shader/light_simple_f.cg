@@ -2,7 +2,7 @@
 
 struct FragmentIn
 {
-  float4 position : TEXCOORD0;
+  float4 pos : TEXCOORD0;
   float3 normal : TEXCOORD1;
 };
 
@@ -11,15 +11,15 @@ struct FragmentOut
   float4 color : COLOR;
 };
 
-FragmentOut tex_simple_f_main(in FragmentIn input,
+FragmentOut light_simple_f_main(in FragmentIn input,
                               uniform float3 lightColor,
                               uniform float3 lightPosition)
 {
   FragmentOut output;
-  float3 P = input.position.xyz;
+  float3 P = input.pos.xyz;
   float3 N = normalize(input.normal);
   float3 L = normalize(lightPosition - P);
   float diffuseLight = max(dot(L, N), 0);
-  output.color = float4(1,1,0,1);//float4(lightColor * diffuseLight, 1);
+  output.color = float4(lightColor * diffuseLight, 1);
   return output;
 }

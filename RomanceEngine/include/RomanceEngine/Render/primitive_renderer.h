@@ -21,6 +21,9 @@ public:
 
   void setRenderContext(const RenderContextPtr& context) { context_; }
 
+  //-----------------------------
+  // 2D
+  //-----------------------------
   void drawRect(
     const Math::Float2& pos,
     const Math::Float2& size,
@@ -35,6 +38,13 @@ public:
   void drawLine(
     const Math::Float2& from,
     const Math::Float2& to,
+    const Math::Float4& color);
+  
+  //-----------------------------
+  // 3D
+  //-----------------------------
+  void drawCube(
+    const float size,
     const Math::Float4& color);
 
 private:

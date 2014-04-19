@@ -394,12 +394,6 @@ private:
 DDSImage image_;
 GUIManager guiManager_;
 
-static const char *myProgramName = "10_fragment_lighting",
-                  *myVertexProgramFileName = "vs.cg",
-/* Page 124 */    *myVertexProgramName = "C5E2v_fragmentLighting",
-                  *myFragmentProgramFileName = "fs.cg",
-/* Page 125 */    *myFragmentProgramName = "C5E3f_basicLight";
-
 static float myLightAngle = -0.4;   /* Angle light rotates around scene. */
 static Matrix4x4 myProjectionMatrix;
 static float myGlobalAmbient[3] = { 0.1, 0.1, 0.1 };  /* Dim */
@@ -479,8 +473,8 @@ bool initGL(HWND hwnd)
   vs_tex_->registParameter("modelViewProj");
   fs_tex_->registParameter("decal");
 
-  vs_light_ = rctx_->getShaderManager()->createVertexShader("shader/light_simple_v.cg", "tex_simple_v_main");
-  fs_light_ = rctx_->getShaderManager()->createFragmentShader("shader/light_simple_f.cg", "tex_simple_f_main");
+  vs_light_ = rctx_->getShaderManager()->createVertexShader("shader/light_simple_v.cg", "light_simple_v_main");
+  fs_light_ = rctx_->getShaderManager()->createFragmentShader("shader/light_simple_f.cg", "light_simple_f_main");
   vs_light_->registParameter("modelViewProj");
   fs_light_->registParameter("lightColor");
   fs_light_->registParameter("lightPosition");
@@ -488,9 +482,11 @@ bool initGL(HWND hwnd)
 
   reshape(width, height);
 
+  
   glEnable(GL_TEXTURE_2D);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glDisable(GL_CULL_FACE);
 
   glewExperimental=GL_TRUE;
   if ( glewInit() != GLEW_OK )
@@ -629,63 +625,19 @@ static void reshape(int width, int height)
   double fieldOfView = degreeToRadian(40.0); /* Radian */
 
   /* Build projection matrix once. */
-  
-  
   myProjectionMatrix = Matrix4x4::buildPerspective(fieldOfView, aspectRatio, 1.0, 20.0  /* Znear and Zfar */);  
-  //myProjectionMatrix = Matrix4x4::buildOrth(0, width, 0, height, 0.0, 20.0);
+  //myProjectionMatrix = Matrix4x4::buildOrth(0, width, 0, height, 0.0, 50.0);
   
   glViewport(0, 0, width, height);
-}
-
-#if 0
-static void setBrassMaterial(void)
-{
-  const float brassEmissive[3] = {0.0,  0.0,  0.0},
-              brassAmbient[3]  = {0.33, 0.22, 0.03},
-              brassDiffuse[3]  = {0.78, 0.57, 0.11},
-              brassSpecular[3] = {0.99, 0.91, 0.81},
-              brassShininess = 27.8;
-
-  fragmentShader_->setParameterFloat3("Ke", brassEmissive);
-  fragmentShader_->setParameterFloat3("Ka", brassAmbient);
-  fragmentShader_->setParameterFloat3("Kd", brassDiffuse);
-  fragmentShader_->setParameterFloat3("Ks", brassSpecular);
-  fragmentShader_->setParameterFloat1("shininess", brassShininess);
-}
-static void setRedPlasticMaterial(void)
-{
-  const float redPlasticEmissive[3] = {0.0,  0.0,  0.0},
-              redPlasticAmbient[3]  = {0.0, 0.0, 0.0},
-              redPlasticDiffuse[3]  = {0.5, 0.0, 0.0},
-              redPlasticSpecular[3] = {0.7, 0.6, 0.6},
-              redPlasticShininess = 32.0;
-  
-  fragmentShader_->setParameterFloat3("Ke", redPlasticEmissive);
-  fragmentShader_->setParameterFloat3("Ka", redPlasticAmbient);
-  fragmentShader_->setParameterFloat3("Kd", redPlasticDiffuse);
-  fragmentShader_->setParameterFloat3("Ks", redPlasticSpecular);
-  fragmentShader_->setParameterFloat1("shininess", redPlasticShininess);
-}
-
-static void setEmissiveLightColorOnly(void)
-{
-  const float zero[3] = {0.0,  0.0,  0.0};
-
-  fragmentShader_->setParameterFloat3("Ke", myLightColor);
-  fragmentShader_->setParameterFloat3("Ka", zero);
-  fragmentShader_->setParameterFloat3("Kd", zero);
-  fragmentShader_->setParameterFloat3("Ks", zero);
-  fragmentShader_->setParameterFloat1("shininess", 0);
-}
+} 
 
 void ReleaseGL()
 {
     //
-    //レンダリングコンテキスト破棄
+    //レンダリングコンテキスト破棄.
     //
     wglDeleteContext( glrc );
 }
-#endif
 
 void renderCube(const float size)
 {
@@ -860,9 +812,8 @@ void RenderGL3(HDC dc)
 {
   /* World-space positions for light and eye. */
   
+  PrimitiveRenderer pr(rctx_);
   rctx_->renderBegin();
-  
-  glDepthMask(GL_TRUE);
 
   Vector3D eyePosition(5, 5, 13);
   Vector3D lightPosition(5*sin(myLightAngle), 
@@ -870,18 +821,15 @@ void RenderGL3(HDC dc)
                          5*cos(myLightAngle));
 
   Matrix4x4 viewMatrix = Matrix4x4::buildLookAt(eyePosition, Vector3D(0, 0, 0), Vector3D(0, 1, 0));
-
+  
+  glClearColor(0.1, 0.1, 0.1, 0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  vs_light_->bind();
-  fs_light_->bind();
 
   /*** Render brass solid sphere ***/
 
   /* modelView = rotateMatrix * translateMatrix */
-  Matrix4x4 rotateMatrix = Matrix4x4::buildRotateByVector(Vector3D(1, 1, 1), degreeToRadian(70));
-  Matrix4x4 translateMatrix = Matrix4x4::buildTranslate(2, 0, 0);
-  Matrix4x4 modelMatrix = translateMatrix.multiply(rotateMatrix);
+  Matrix4x4 translateMatrix = Matrix4x4::buildTranslate(0, 0, 0);
+  Matrix4x4 modelMatrix = translateMatrix;
 
   /* invModelMatrix = inverse(modelMatrix) */
   Matrix4x4 invModelMatrix = modelMatrix.inverse();
@@ -895,69 +843,29 @@ void RenderGL3(HDC dc)
 
   /* modelViewProj = projectionMatrix * modelViewMatrix */
   Matrix4x4 modelViewProjMatrix = myProjectionMatrix.multiply(modelViewMatrix);
-
+  
   /* Set matrix parameter with row-major matrix. */
   vs_light_->setMatrixParameter("modelViewProj", modelViewProjMatrix);
  
   vs_light_->update();
   fs_light_->update();
+  
+  vs_light_->bind();
+  fs_light_->bind();
 
   glutSolidSphere(2.0, 40, 40);
+  pr.drawCube(30.0, Float4(1,1,1,1));
 
-  /* modelView = viewMatrix * translateMatrix */
-  translateMatrix = Matrix4x4::buildTranslate(-2, -1.5, 0);
-  rotateMatrix = Matrix4x4::buildRotateByVector(Vector3D(1, 0, 0), degreeToRadian(90));
-  modelMatrix = translateMatrix.multiply(rotateMatrix);
+  pr.drawRect(Rect(300, 100, 100, 100), Float4(0, 1, 0, 0.4));
 
-  /* invModelMatrix = inverse(modelMatrix) */
-  invModelMatrix = modelMatrix.inverse();
-
-  /* Transform world-space eye and light positions to sphere's object-space. */
-  objSpaceLightPosition = invModelMatrix.multiply(lightPosition);
-
-  /* modelViewMatrix = viewMatrix * modelMatrix */
-  modelViewMatrix = viewMatrix.multiply(modelMatrix);
-
-  /* modelViewProj = projectionMatrix * modelViewMatrix */
-  modelViewProjMatrix = myProjectionMatrix.multiply(modelViewMatrix);
-
-  /* Set matrix parameter with row-major matrix. */
-  vs_light_->setMatrixParameter("modelViewProj", modelViewProjMatrix);
-
-  vs_light_->update();
-  fs_light_->update();
-
-  glutSolidCone(1.5, 3.5, 30, 30);
-  //renderCube(2);
-
-  /*** Render light as emissive white ball ***/
-
-  /* modelView = translateMatrix */
-  modelMatrix = Matrix4x4::buildTranslate(lightPosition[0], lightPosition[1], lightPosition[2]);
-
-  /* modelViewMatrix = viewMatrix * modelMatrix */
-  modelViewMatrix = viewMatrix.multiply(modelMatrix);
-
-  /* modelViewProj = projectionMatrix * modelViewMatrix */
-  modelViewProjMatrix = myProjectionMatrix.multiply(modelViewMatrix);
-
-  fs_light_->setParameterFloat3("lightPosition", 0, 0, 0);
-
-  /* Set matrix parameter with row-major matrix. */
-  vs_light_->setMatrixParameter("modelViewProj", modelViewProjMatrix);
-  
-  vs_light_->update();
-  fs_light_->update();
-
-  glutSolidSphere(0.2, 12, 12);
-  
   vs_light_->unbind();
   fs_light_->unbind();
-  
+
   rctx_->renderEnd();
 
   SwapBuffers( dc );
 }
+
 
 void RenderGL( HDC dc )
 {
@@ -1161,6 +1069,7 @@ End:
 #endif
 #if USE_GL
     image_.release();
+    ReleaseGL();
 #endif
 	FreeConsole();
 	return 0;
