@@ -174,6 +174,7 @@ public:
   virtual void renderBegin()
   {
     glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_NORMAL_ARRAY);
     glEnableClientState(GL_COLOR_ARRAY);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
   }
@@ -181,6 +182,7 @@ public:
   virtual void renderEnd()
   {
     glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_NORMAL_ARRAY);
     glDisableClientState(GL_COLOR_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
   }
@@ -478,7 +480,7 @@ bool initGL(HWND hwnd)
   vs_light_->registParameter("modelViewProj");
   fs_light_->registParameter("lightColor");
   fs_light_->registParameter("lightPosition");
-  fs_light_->setParameterFloat3("lightColor", 1, 0, 0);
+  fs_light_->setParameterFloat3("lightColor", 1, 1, 1);
 
   reshape(width, height);
 
@@ -814,50 +816,61 @@ void RenderGL3(HDC dc)
   
   PrimitiveRenderer pr(rctx_);
   rctx_->renderBegin();
-
-  Vector3D eyePosition(5, 5, 13);
-  Vector3D lightPosition(5*sin(myLightAngle), 
-                         1.5,
-                         5*cos(myLightAngle));
-
-  Matrix4x4 viewMatrix = Matrix4x4::buildLookAt(eyePosition, Vector3D(0, 0, 0), Vector3D(0, 1, 0));
   
   glClearColor(0.1, 0.1, 0.1, 0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  /*** Render brass solid sphere ***/
-
-  /* modelView = rotateMatrix * translateMatrix */
-  Matrix4x4 translateMatrix = Matrix4x4::buildTranslate(0, 0, 0);
-  Matrix4x4 modelMatrix = translateMatrix;
-
-  /* invModelMatrix = inverse(modelMatrix) */
-  Matrix4x4 invModelMatrix = modelMatrix.inverse();
-
-  /* Transform world-space eye and light positions to sphere's object-space. */
-  Vector3D objSpaceLightPosition = invModelMatrix.multiply(lightPosition);
-  fs_light_->setParameterFloat3("lightPosition", objSpaceLightPosition);
-
-  /* modelViewMatrix = viewMatrix * modelMatrix */
-  Matrix4x4 modelViewMatrix = viewMatrix.multiply(modelMatrix);
-
-  /* modelViewProj = projectionMatrix * modelViewMatrix */
-  Matrix4x4 modelViewProjMatrix = myProjectionMatrix.multiply(modelViewMatrix);
-  
-  /* Set matrix parameter with row-major matrix. */
-  vs_light_->setMatrixParameter("modelViewProj", modelViewProjMatrix);
- 
-  vs_light_->update();
-  fs_light_->update();
-  
   vs_light_->bind();
   fs_light_->bind();
+  
+  //-----------------------
+  // setup.
+  //-----------------------
+  Vector3D lightPosition(5*sin(myLightAngle), 
+                         3.5,
+                         5*cos(myLightAngle));
+  fs_light_->setParameterFloat3("lightPosition", lightPosition);
 
-  glutSolidSphere(2.0, 40, 40);
-  pr.drawCube(30.0, Float4(1,1,1,1));
+  Vector3D eyePosition(5, 5, 13);
+  Matrix4x4 viewMatrix = Matrix4x4::buildLookAt(eyePosition, Vector3D(0, 0, 0), Vector3D(0, 1, 0));
 
-  pr.drawRect(Rect(300, 100, 100, 100), Float4(0, 1, 0, 0.4));
 
+  //------------------------
+  // cube.
+  //------------------------
+  // model
+  Matrix4x4 translateMatrix = Matrix4x4::buildTranslate(-2, 0, 0);
+  Matrix4x4 modelMatrix = translateMatrix;
+  // mode-view
+  Matrix4x4 modelViewMatrix = viewMatrix.multiply(modelMatrix);
+  // model-view-proj
+  Matrix4x4 modelViewProjMatrix = myProjectionMatrix.multiply(modelViewMatrix);
+  vs_light_->setMatrixParameter("modelViewProj", modelViewProjMatrix);
+ 
+  // shader update
+  vs_light_->update();
+  fs_light_->update();
+
+  //glutSolidCube(3.0);
+  pr.drawCube(2.0, Float4(1,1,1,1));
+  
+  //------------------------
+  // shpere.
+  //------------------------
+  // model
+  translateMatrix = Matrix4x4::buildTranslate(+2, 0, 0);
+  modelMatrix = translateMatrix;
+  // mode-view
+  modelViewMatrix = viewMatrix.multiply(modelMatrix);
+  // model-view-proj
+  modelViewProjMatrix = myProjectionMatrix.multiply(modelViewMatrix);
+  vs_light_->setMatrixParameter("modelViewProj", modelViewProjMatrix);
+  vs_light_->update();
+
+  glutSolidSphere(1.0, 40, 40);
+
+
+  //unbind
   vs_light_->unbind();
   fs_light_->unbind();
 
@@ -963,7 +976,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
       break;
     }
-    myLightAngle += 0.008;  /* Add a small angle (in radians). */
+    myLightAngle += 0.03;  /* Add a small angle (in radians). */
     if (myLightAngle > 2*kRM_PI) {
       myLightAngle -= 2*kRM_PI;
     }
