@@ -114,6 +114,18 @@
     <ClCompile Include="src\RomanceEngine\RenderSystem\GL\gl_shader_manager.cpp">
       <Filter>RomanceEngine\Source\RenderSystem\GL</Filter>
     </ClCompile>
+    <ClCompile Include="src\RomanceEngine\GUI\button.cpp">
+      <Filter>RomanceEngine\Source\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RomanceEngine\GUI\value_bar.cpp">
+      <Filter>RomanceEngine\Source\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RomanceEngine\GUI\gui_manager.cpp">
+      <Filter>RomanceEngine\Source\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RomanceEngine\GUI\gui_object.cpp">
+      <Filter>RomanceEngine\Source\GUI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="none.fx">
@@ -195,6 +207,21 @@
     </ClInclude>
     <ClInclude Include="include\RomanceEngine\Math\rect.h">
       <Filter>RomanceEngine\Header\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RomanceEngine\Math\math.h">
+      <Filter>RomanceEngine\Header\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RomanceEngine\GUI\button.h">
+      <Filter>RomanceEngine\Header\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RomanceEngine\GUI\gui_object.h">
+      <Filter>RomanceEngine\Header\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RomanceEngine\GUI\value_bar.h">
+      <Filter>RomanceEngine\Header\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RomanceEngine\GUI\gui_manager.h">
+      <Filter>RomanceEngine\Header\GUI</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

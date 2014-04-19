@@ -16,12 +16,17 @@
 #include <RomanceEngine/Image/dds.h>
 #include <RomanceEngine/Render/render_context.h>
 #include <RomanceEngine/Math/rect.h>
+#include <RomanceEngine/GUI/gui_object.h>
+#include <RomanceEngine/GUI/button.h>
+#include <RomanceEngine/GUI/value_bar.h>
+#include <RomanceEngine/GUI/gui_manager.h>
 
 using namespace std;
 using namespace RomanceEngine::Math;
 using namespace RomanceEngine::Memory;
 using namespace RomanceEngine::Render;
 using namespace RomanceEngine::Image;
+using namespace RomanceEngine::GUI;
 
 // warning C4996: 'freopen': This function or variable may be unsafe...
 #pragma warning (disable : 4996)
@@ -225,127 +230,6 @@ FragmentShaderPtr fs_;
 VertexShaderPtr vs_light_;
 FragmentShaderPtr fs_light_;
 
-namespace RomanceEngine {
-namespace GUI {
-
-class GUIObject
-{
-public:
-  GUIObject() {}
-  virtual ~GUIObject() {};
-
-  virtual Math::Rect getRegion() const { return region_; }
-  virtual void setRegion(const Math::Rect& region) { region_ = region; }
-
-  virtual void click(const Math::Float2& p)
-  {
-    clickEvent_(p);
-  };
-
-  virtual void render(const RenderContextPtr& context) {};
-  virtual void update() {};
-
-public:
-  boost::signals2::signal<void(const Math::Float2&)> clickEvent_;
-
-protected:
-  Math::Rect region_;
-};
-typedef Memory::SharedPtr<GUIObject> GUIObjectPtr;
-
-class Button : public GUIObject
-{
-public:
-  virtual ~Button() {}
-
-  virtual void render(const RenderContextPtr& context)
-  {
-    PrimitiveRenderer renderer(context);
-    renderer.drawRect(region_, Math::Float4(1, 1, 0, 0.5));
-  }
-};
-
-class ValueBar : public GUIObject
-{
-public:
-  ValueBar(const float value=0.0f)
-    : value_(value)
-  {}
-
-  virtual ~ValueBar() {}
-
-  virtual void click(const Math::Float2& p)
-  {
-    GUIObject::click(p);
-    float w = getRegion().width();
-    float pos = p.x_ - getRegion().left();
-    value_ = pos / w;
-  }
-
-  virtual void render(const RenderContextPtr& context)
-  {
-    PrimitiveRenderer renderer(context);
-    renderer.drawRect(region_, Math::Float4(0.5, 0.5, 0.5, 1.0));
-
-    Math::Rect valueRect = region_;
-    valueRect.size_.x_ *= value_;
-    renderer.drawRect(valueRect, Math::Float4(0.3, 0.3, 0.8, 1.0));
-  }
-  
-  float getValue() const { return value_; }
-  void setValue(const float value) { value_ = value; }
-
-private:
-  float value_;
-};
-
-class GUIManager
-{
-public:
-  GUIManager() {}
-  ~GUIManager() {}
-
-  void update()
-  {
-    for (int i=0; i < (int)objects_.size(); ++i)
-    {
-      objects_[i]->update();
-    }
-  }
-
-  void render(const RenderContextPtr& context)
-  {
-    for (int i=0; i < (int)objects_.size(); ++i)
-    {
-      objects_[i]->render(context);
-    }
-  }
-
-  void add(const GUIObjectPtr& obj)
-  {
-    objects_.push_back(obj);
-  }
-
-  void click(const Math::Float2& p)
-  {
-    for (int i=0; i < (int)objects_.size(); ++i)
-    {
-      if (objects_[i]->getRegion().contains(p))
-      {
-        objects_[i]->click(p);
-        break;
-      }
-    }
-  }
-
-private:
-  std::vector<GUIObjectPtr> objects_;
-};
-
-} // GUI
-} // RomanceEngine
-using namespace RomanceEngine::GUI;
-
 void clickA(const Float2& p)
 {
   cout << "clickedA : (" << p.x_ << ", " << p.y_ << ")" << endl;
@@ -356,6 +240,8 @@ void clickB(const Float2& p)
   cout << "clickedB : (" << p.x_ << ", " << p.y_ << ")" << endl;
 }
 
+#if 0
+// [WIP]
 namespace {
   enum {
     kRM_SHADER_COLOR_SIMPLE=0,
@@ -365,8 +251,6 @@ namespace {
   };
 }
 
-#if 0
-// [WIP]
 class EmbededShaderSet
 {
 public:
