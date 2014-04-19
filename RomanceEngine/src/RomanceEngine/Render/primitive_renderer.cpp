@@ -46,10 +46,12 @@ void PrimitiveRenderer::drawRect(
 
   const uint32_t idx[4] = { 0, 1, 2, 3 };
   
+  glDisableClientState(GL_NORMAL_ARRAY);
   context_->setVertexPointer(4, kRM_FLOAT, sizeof(float)*4, p);
   context_->setColorPointer(4, kRM_FLOAT, sizeof(float)*4, c);
   context_->setTexCoordPointer(2, kRM_FLOAT, sizeof(float)*2, t);
   context_->drawElements(kRM_QUADS, 4, kRM_UNSIGNED_INT, idx);
+  glEnableClientState(GL_NORMAL_ARRAY);
 };
 
 void PrimitiveRenderer::drawRect(
@@ -78,9 +80,13 @@ void PrimitiveRenderer::drawLine(
 
   const uint32_t idx[2] = { 0, 1 };
   
+  glDisableClientState(GL_NORMAL_ARRAY);
+  glDisableClientState(GL_TEXTURE_COORD_ARRAY);
   context_->setVertexPointer(4, kRM_FLOAT, sizeof(float)*4, p);
   context_->setColorPointer(4, kRM_FLOAT, sizeof(float)*4, c);
   context_->drawElements(kRM_LINES, 2, kRM_UNSIGNED_INT, idx);
+  glEnableClientState(GL_NORMAL_ARRAY);
+  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 }
 
 void PrimitiveRenderer::drawCube(

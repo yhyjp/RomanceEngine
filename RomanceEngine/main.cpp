@@ -397,7 +397,8 @@ DDSImage image_;
 GUIManager guiManager_;
 
 static float myLightAngle = -0.4;   /* Angle light rotates around scene. */
-static Matrix4x4 myProjectionMatrix;
+static Matrix4x4 myPerspectiveMatrix;
+static Matrix4x4 myOrthoMatrix;
 static float myGlobalAmbient[3] = { 0.1, 0.1, 0.1 };  /* Dim */
 static float myLightColor[3] = { 0.95, 0.95, 0.95 }; 
 
@@ -579,7 +580,7 @@ void renderToTexture()
   rctx_->renderBegin();
   
   // vs_tex update.
-  vs_tex_->setMatrixParameter("modelViewProj", myProjectionMatrix);
+  vs_tex_->setMatrixParameter("modelViewProj", myOrthoMatrix);
   vs_tex_->update();
 
   // fs_tex update
@@ -587,7 +588,7 @@ void renderToTexture()
   fs_tex_->update();
 
   // vs_update
-  vs_->setMatrixParameter("modelViewProj", myProjectionMatrix);
+  vs_->setMatrixParameter("modelViewProj", myOrthoMatrix);
   vs_->update();
 
   PrimitiveRenderer pr(rctx_);
@@ -627,8 +628,8 @@ static void reshape(int width, int height)
   double fieldOfView = degreeToRadian(40.0); /* Radian */
 
   /* Build projection matrix once. */
-  myProjectionMatrix = Matrix4x4::buildPerspective(fieldOfView, aspectRatio, 1.0, 20.0  /* Znear and Zfar */);  
-  //myProjectionMatrix = Matrix4x4::buildOrth(0, width, 0, height, 0.0, 50.0);
+  myPerspectiveMatrix = Matrix4x4::buildPerspective(fieldOfView, aspectRatio, 1.0, 20.0  /* Znear and Zfar */);  
+  myOrthoMatrix = Matrix4x4::buildOrth(0, width, 0, height, 0.0, 50.0);
   
   glViewport(0, 0, width, height);
 } 
@@ -641,175 +642,6 @@ void ReleaseGL()
     wglDeleteContext( glrc );
 }
 
-void renderCube(const float size)
-{
-	float s = size / 2;
-	float v[8][4] = {
-		{ -s, +s, -s, 1 },
-		{ -s, +s, +s, 1 },
-		{ +s, +s, +s, 1 },
-		{ +s, +s, -s, 1 },
-		{ -s, -s, -s, 1 },
-		{ -s, -s, +s, 1 },
-		{ +s, -s, +s, 1 },
-		{ +s, -s, -s, 1 },
-	};
-	
-  // 0 2.
-  // 1 3.
-  //
-  // 4 7.
-  // 5 6.
-
-  float n[6][3] = {
-    0, 1, 0,
-    0,-1, 0,
-    0, 0, 1,
-    0, 0,-1,
-    1, 0, 0,
-   -1, 0, 0,
-  };
-
-	glBegin(GL_TRIANGLES);
-  glNormal3fv(n[0]);
-	glVertex4fv(v[0]); glVertex4fv(v[1]); glVertex4fv(v[3]);
-	glVertex4fv(v[1]); glVertex4fv(v[2]); glVertex4fv(v[3]);
-	
-  glNormal3fv(n[1]);
-	glVertex4fv(v[7]); glVertex4fv(v[5]); glVertex4fv(v[4]);
-	glVertex4fv(v[7]); glVertex4fv(v[6]); glVertex4fv(v[5]);
-	
-  glNormal3fv(n[2]);
-	glVertex4fv(v[1]); glVertex4fv(v[5]); glVertex4fv(v[6]);
-	glVertex4fv(v[5]); glVertex4fv(v[6]); glVertex4fv(v[7]);
-  
-  glNormal3fv(n[3]);
-	glVertex4fv(v[0]); glVertex4fv(v[3]); glVertex4fv(v[4]);
-	glVertex4fv(v[3]); glVertex4fv(v[4]); glVertex4fv(v[7]);
-	
-  glNormal3fv(n[4]);
-	glVertex4fv(v[0]); glVertex4fv(v[4]); glVertex4fv(v[1]);
-	glVertex4fv(v[4]); glVertex4fv(v[1]); glVertex4fv(v[5]);
-  
-  glNormal3fv(n[5]);
-	glVertex4fv(v[3]); glVertex4fv(v[7]); glVertex4fv(v[2]);
-	glVertex4fv(v[7]); glVertex4fv(v[2]); glVertex4fv(v[6]);
-
-
-	glEnd();
-}
-
-#if 0
-void RenderGL2( HDC dc )
-{
-
-  /* World-space positions for light and eye. */
-
-  Vector3D eyePosition(5, 5, 13);
-  Vector3D lightPosition(5*sin(myLightAngle), 
-                         1.5,
-                         5*cos(myLightAngle));
-
-  Matrix4x4 viewMatrix = Matrix4x4::buildLookAt(eyePosition, Vector3D(0, 0, 0), Vector3D(0, 1, 0));
-
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  vertexShader_->bind();
-  fragmentShader_->bind();
-
-  /*** Render brass solid sphere ***/
-
-  setBrassMaterial();
-
-  /* modelView = rotateMatrix * translateMatrix */
-  Matrix4x4 rotateMatrix = Matrix4x4::buildRotateByVector(Vector3D(1, 1, 1), degreeToRadian(70));
-  Matrix4x4 translateMatrix = Matrix4x4::buildTranslate(2, 0, 0);
-  Matrix4x4 modelMatrix = translateMatrix.multiply(rotateMatrix);
-
-  /* invModelMatrix = inverse(modelMatrix) */
-  Matrix4x4 invModelMatrix = modelMatrix.inverse();
-
-  /* Transform world-space eye and light positions to sphere's object-space. */
-  Vector3D objSpaceEyePosition = invModelMatrix.multiply(eyePosition);
-  Vector3D objSpaceLightPosition = invModelMatrix.multiply(lightPosition);
-  fragmentShader_->setParameterFloat3("eyePosition", objSpaceEyePosition);
-  fragmentShader_->setParameterFloat3("lightPosition", objSpaceLightPosition);
-
-  /* modelViewMatrix = viewMatrix * modelMatrix */
-  Matrix4x4 modelViewMatrix = viewMatrix.multiply(modelMatrix);
-
-  /* modelViewProj = projectionMatrix * modelViewMatrix */
-  Matrix4x4 modelViewProjMatrix = myProjectionMatrix.multiply(modelViewMatrix);
-
-  /* Set matrix parameter with row-major matrix. */
-  vertexShader_->setMatrixParameter("modelViewProj", modelViewProjMatrix);
- 
-  vertexShader_->update();
-  fragmentShader_->update();
-
-  glutSolidSphere(2.0, 40, 40);
-
-  /*** Render red plastic solid cone ***/
-
-  setRedPlasticMaterial();
-
-  /* modelView = viewMatrix * translateMatrix */
-  translateMatrix = Matrix4x4::buildTranslate(-2, -1.5, 0);
-  rotateMatrix = Matrix4x4::buildRotateByVector(Vector3D(1, 0, 0), degreeToRadian(90));
-  modelMatrix = translateMatrix.multiply(rotateMatrix);
-
-  /* invModelMatrix = inverse(modelMatrix) */
-  invModelMatrix = modelMatrix.inverse();
-
-  /* Transform world-space eye and light positions to sphere's object-space. */
-  objSpaceEyePosition = invModelMatrix.multiply(eyePosition);
-  objSpaceLightPosition = invModelMatrix.multiply(lightPosition);
-
-  /* modelViewMatrix = viewMatrix * modelMatrix */
-  modelViewMatrix = viewMatrix.multiply(modelMatrix);
-
-  /* modelViewProj = projectionMatrix * modelViewMatrix */
-  modelViewProjMatrix = myProjectionMatrix.multiply(modelViewMatrix);
-
-  /* Set matrix parameter with row-major matrix. */
-  vertexShader_->setMatrixParameter("modelViewProj", modelViewProjMatrix);
-
-  vertexShader_->update();
-  fragmentShader_->update();
-
-  glutSolidCone(1.5, 3.5, 30, 30);
-  //renderCube(2);
-
-  /*** Render light as emissive white ball ***/
-
-  /* modelView = translateMatrix */
-  modelMatrix = Matrix4x4::buildTranslate(lightPosition[0], lightPosition[1], lightPosition[2]);
-
-  /* modelViewMatrix = viewMatrix * modelMatrix */
-  modelViewMatrix = viewMatrix.multiply(modelMatrix);
-
-  /* modelViewProj = projectionMatrix * modelViewMatrix */
-  modelViewProjMatrix = myProjectionMatrix.multiply(modelViewMatrix);
-
-  setEmissiveLightColorOnly();
-  /* Avoid degenerate lightPosition. */
-  fragmentShader_->setParameterFloat3("lightPosition", 0, 0, 0);
-
-  /* Set matrix parameter with row-major matrix. */
-  vertexShader_->setMatrixParameter("modelViewProj", modelViewProjMatrix);
-  
-  vertexShader_->update();
-  fragmentShader_->update();
-
-  glutSolidSphere(0.2, 12, 12);
-  
-  vertexShader_->unbind();
-  fragmentShader_->unbind();
-
-  SwapBuffers( dc );
-}
-#endif
-
 void RenderGL3(HDC dc)
 {
   /* World-space positions for light and eye. */
@@ -817,9 +649,6 @@ void RenderGL3(HDC dc)
   PrimitiveRenderer pr(rctx_);
   rctx_->renderBegin();
   
-  glClearColor(0.1, 0.1, 0.1, 0);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
   vs_light_->bind();
   fs_light_->bind();
   
@@ -844,7 +673,7 @@ void RenderGL3(HDC dc)
   // mode-view
   Matrix4x4 modelViewMatrix = viewMatrix.multiply(modelMatrix);
   // model-view-proj
-  Matrix4x4 modelViewProjMatrix = myProjectionMatrix.multiply(modelViewMatrix);
+  Matrix4x4 modelViewProjMatrix = myPerspectiveMatrix.multiply(modelViewMatrix);
   vs_light_->setMatrixParameter("modelViewProj", modelViewProjMatrix);
  
   // shader update
@@ -863,7 +692,7 @@ void RenderGL3(HDC dc)
   // mode-view
   modelViewMatrix = viewMatrix.multiply(modelMatrix);
   // model-view-proj
-  modelViewProjMatrix = myProjectionMatrix.multiply(modelViewMatrix);
+  modelViewProjMatrix = myPerspectiveMatrix.multiply(modelViewMatrix);
   vs_light_->setMatrixParameter("modelViewProj", modelViewProjMatrix);
   vs_light_->update();
 
@@ -875,8 +704,6 @@ void RenderGL3(HDC dc)
   fs_light_->unbind();
 
   rctx_->renderEnd();
-
-  SwapBuffers( dc );
 }
 
 
@@ -884,15 +711,12 @@ void RenderGL( HDC dc )
 {
   renderToTexture();
   
-  glClearColor(0.1, 0.1, 0.1, 0);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  
   PrimitiveRenderer pr(rctx_);
 
   rctx_->renderBegin();
   
   // vs_tex update.
-  vs_tex_->setMatrixParameter("modelViewProj", myProjectionMatrix);
+  vs_tex_->setMatrixParameter("modelViewProj", myOrthoMatrix);
   vs_tex_->update();
 
   // fs_tex update
@@ -901,7 +725,7 @@ void RenderGL( HDC dc )
   fs_tex_->update();
 
   // vs update
-  vs_->setMatrixParameter("modelViewProj", myProjectionMatrix);
+  vs_->setMatrixParameter("modelViewProj", myOrthoMatrix);
   vs_->update();
   
   glDepthMask(GL_FALSE);
@@ -935,8 +759,6 @@ void RenderGL( HDC dc )
   glDepthMask(GL_TRUE);
   
   rctx_->renderEnd();
-
-  SwapBuffers( dc );
 }
 
 #endif
@@ -965,8 +787,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			HDC hdc = BeginPaint(hWnd, &ps);
 #if USE_GL
 			wglMakeCurrent( hdc, glrc );
-			//RenderGL( hdc );
+      glClearColor(0.1, 0.1, 0.1, 0);
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
       RenderGL3( hdc );
+			RenderGL( hdc );
+      SwapBuffers( hdc );
 			wglMakeCurrent( hdc, 0 );
 #endif
 			EndPaint(hWnd, &ps);
