@@ -220,6 +220,8 @@ VertexShaderPtr vs_tex_;
 FragmentShaderPtr fs_tex_;
 VertexShaderPtr vs_;
 FragmentShaderPtr fs_;
+VertexShaderPtr vs_light_;
+FragmentShaderPtr fs_light_;
 
 namespace RomanceEngine {
 namespace GUI {
@@ -477,6 +479,12 @@ bool initGL(HWND hwnd)
   vs_tex_->registParameter("modelViewProj");
   fs_tex_->registParameter("decal");
 
+  vs_light_ = rctx_->getShaderManager()->createVertexShader("shader/light_simple_v.cg", "tex_simple_v_main");
+  fs_light_ = rctx_->getShaderManager()->createFragmentShader("shader/light_simple_f.cg", "tex_simple_f_main");
+  vs_light_->registParameter("modelViewProj");
+  fs_light_->registParameter("lightColor");
+  fs_light_->registParameter("lightPosition");
+  fs_light_->setParameterFloat3("lightColor", 1, 0, 0);
 
   reshape(width, height);
 
@@ -623,8 +631,8 @@ static void reshape(int width, int height)
   /* Build projection matrix once. */
   
   
-  //myProjectionMatrix = Matrix4x4::buildPerspective(fieldOfView, aspectRatio, 1.0, 20.0  /* Znear and Zfar */);  
-  myProjectionMatrix = Matrix4x4::buildOrth(0, width, 0, height, 0.0, 20.0);
+  myProjectionMatrix = Matrix4x4::buildPerspective(fieldOfView, aspectRatio, 1.0, 20.0  /* Znear and Zfar */);  
+  //myProjectionMatrix = Matrix4x4::buildOrth(0, width, 0, height, 0.0, 20.0);
   
   glViewport(0, 0, width, height);
 }
@@ -848,6 +856,109 @@ void RenderGL2( HDC dc )
 }
 #endif
 
+void RenderGL3(HDC dc)
+{
+  /* World-space positions for light and eye. */
+  
+  rctx_->renderBegin();
+  
+  glDepthMask(GL_TRUE);
+
+  Vector3D eyePosition(5, 5, 13);
+  Vector3D lightPosition(5*sin(myLightAngle), 
+                         1.5,
+                         5*cos(myLightAngle));
+
+  Matrix4x4 viewMatrix = Matrix4x4::buildLookAt(eyePosition, Vector3D(0, 0, 0), Vector3D(0, 1, 0));
+
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  vs_light_->bind();
+  fs_light_->bind();
+
+  /*** Render brass solid sphere ***/
+
+  /* modelView = rotateMatrix * translateMatrix */
+  Matrix4x4 rotateMatrix = Matrix4x4::buildRotateByVector(Vector3D(1, 1, 1), degreeToRadian(70));
+  Matrix4x4 translateMatrix = Matrix4x4::buildTranslate(2, 0, 0);
+  Matrix4x4 modelMatrix = translateMatrix.multiply(rotateMatrix);
+
+  /* invModelMatrix = inverse(modelMatrix) */
+  Matrix4x4 invModelMatrix = modelMatrix.inverse();
+
+  /* Transform world-space eye and light positions to sphere's object-space. */
+  Vector3D objSpaceLightPosition = invModelMatrix.multiply(lightPosition);
+  fs_light_->setParameterFloat3("lightPosition", objSpaceLightPosition);
+
+  /* modelViewMatrix = viewMatrix * modelMatrix */
+  Matrix4x4 modelViewMatrix = viewMatrix.multiply(modelMatrix);
+
+  /* modelViewProj = projectionMatrix * modelViewMatrix */
+  Matrix4x4 modelViewProjMatrix = myProjectionMatrix.multiply(modelViewMatrix);
+
+  /* Set matrix parameter with row-major matrix. */
+  vs_light_->setMatrixParameter("modelViewProj", modelViewProjMatrix);
+ 
+  vs_light_->update();
+  fs_light_->update();
+
+  glutSolidSphere(2.0, 40, 40);
+
+  /* modelView = viewMatrix * translateMatrix */
+  translateMatrix = Matrix4x4::buildTranslate(-2, -1.5, 0);
+  rotateMatrix = Matrix4x4::buildRotateByVector(Vector3D(1, 0, 0), degreeToRadian(90));
+  modelMatrix = translateMatrix.multiply(rotateMatrix);
+
+  /* invModelMatrix = inverse(modelMatrix) */
+  invModelMatrix = modelMatrix.inverse();
+
+  /* Transform world-space eye and light positions to sphere's object-space. */
+  objSpaceLightPosition = invModelMatrix.multiply(lightPosition);
+
+  /* modelViewMatrix = viewMatrix * modelMatrix */
+  modelViewMatrix = viewMatrix.multiply(modelMatrix);
+
+  /* modelViewProj = projectionMatrix * modelViewMatrix */
+  modelViewProjMatrix = myProjectionMatrix.multiply(modelViewMatrix);
+
+  /* Set matrix parameter with row-major matrix. */
+  vs_light_->setMatrixParameter("modelViewProj", modelViewProjMatrix);
+
+  vs_light_->update();
+  fs_light_->update();
+
+  glutSolidCone(1.5, 3.5, 30, 30);
+  //renderCube(2);
+
+  /*** Render light as emissive white ball ***/
+
+  /* modelView = translateMatrix */
+  modelMatrix = Matrix4x4::buildTranslate(lightPosition[0], lightPosition[1], lightPosition[2]);
+
+  /* modelViewMatrix = viewMatrix * modelMatrix */
+  modelViewMatrix = viewMatrix.multiply(modelMatrix);
+
+  /* modelViewProj = projectionMatrix * modelViewMatrix */
+  modelViewProjMatrix = myProjectionMatrix.multiply(modelViewMatrix);
+
+  fs_light_->setParameterFloat3("lightPosition", 0, 0, 0);
+
+  /* Set matrix parameter with row-major matrix. */
+  vs_light_->setMatrixParameter("modelViewProj", modelViewProjMatrix);
+  
+  vs_light_->update();
+  fs_light_->update();
+
+  glutSolidSphere(0.2, 12, 12);
+  
+  vs_light_->unbind();
+  fs_light_->unbind();
+  
+  rctx_->renderEnd();
+
+  SwapBuffers( dc );
+}
+
 void RenderGL( HDC dc )
 {
   renderToTexture();
@@ -933,7 +1044,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			HDC hdc = BeginPaint(hWnd, &ps);
 #if USE_GL
 			wglMakeCurrent( hdc, glrc );
-			RenderGL( hdc );
+			//RenderGL( hdc );
+      RenderGL3( hdc );
 			wglMakeCurrent( hdc, 0 );
 #endif
 			EndPaint(hWnd, &ps);

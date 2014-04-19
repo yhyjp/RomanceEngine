@@ -89,6 +89,30 @@ void FragmentShader::setParameterFloat3(const std::string& name, const Math::Vec
   setParameterFloat3(name, value.p_);
 }
 
+void FragmentShader::setParameterFloat4(const std::string& name, const float* value/*[4]*/)
+{
+  std::map<std::string, CGparameter>::iterator it = parameters_.find(name);
+  if (it == parameters_.end())
+  {
+    printf("Error: parameter not registed > %s\n", name.c_str());
+    assert(false);
+  }
+  cgSetParameter4fv(parameters_[name], value);
+  checkCgError(context_, "setting " + name + " parameter");
+}
+
+void FragmentShader::setParameterFloat4(const std::string& name, const float value0, const float value1, const float value2, const float value3)
+{
+  std::map<std::string, CGparameter>::iterator it = parameters_.find(name);
+  if (it == parameters_.end())
+  {
+    printf("Error: parameter not registed > %s\n", name.c_str());
+    assert(false);
+  }
+  cgSetParameter4f(parameters_[name], value0, value1, value2, value3);
+  checkCgError(context_, "setting " + name + " parameter");
+}
+
 void FragmentShader::setParameterFloat3(const std::string& name, const float* value/*[3]*/)
 {
   std::map<std::string, CGparameter>::iterator it = parameters_.find(name);

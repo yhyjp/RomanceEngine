@@ -27,10 +27,12 @@ public:
 
   void registParameter(const std::string& name);
   void setParameterMatrix(const std::string& name, const Math::Matrix4x4& value);
+  void setParameterFloat1(const std::string& name, const float value);
   void setParameterFloat3(const std::string& name, const Math::Vector3D& value);
   void setParameterFloat3(const std::string& name, const float* value/*[3]*/);
   void setParameterFloat3(const std::string& name, const float value0, const float value1, const float value2);
-  void setParameterFloat1(const std::string& name, const float value);
+  void setParameterFloat4(const std::string& name, const float* value/*[4]*/);
+  void setParameterFloat4(const std::string& name, const float value0, const float value1, const float value2, const float value3);
   void setParameterTexture(const std::string& name, const uint32_t id);
 
 private:

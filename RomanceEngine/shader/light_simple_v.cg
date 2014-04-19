@@ -9,16 +9,14 @@ struct VertexIn
 
 struct VertexOut
 {
-  float4 position	: POSITION;
-  float3 normal	: NORMAL;
-  float4 color : COLOR;
+  float4 position	: TEXCOORD0;
+  float3 normal	: TEXCOORD1;
 };
 
 VertexOut tex_simple_v_main(in VertexIn input, uniform float4x4 modelViewProj)
 {
   VertexOut output;
   output.position =	mul(modelViewProj, input.position);
-  output.color = input.color;
   output.normal = input.normal;
   return output;
 }
