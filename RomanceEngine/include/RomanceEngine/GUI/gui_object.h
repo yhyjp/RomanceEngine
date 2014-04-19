@@ -12,7 +12,6 @@ namespace GUI {
 class GUIObject
 {
 public:
-
   GUIObject() {}
   virtual ~GUIObject() {};
 
