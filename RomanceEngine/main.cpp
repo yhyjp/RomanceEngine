@@ -374,6 +374,7 @@ bool initGL(HWND hwnd)
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glDisable(GL_CULL_FACE);
+  glEnable(GL_DEPTH_TEST);
 
   glewExperimental=GL_TRUE;
   if ( glewInit() != GLEW_OK )
@@ -526,6 +527,114 @@ void ReleaseGL()
     wglDeleteContext( glrc );
 }
 
+struct ParticleElement
+{
+  ParticleElement()
+    : pos_(0, 0, 0)
+    , size_(1, 1)
+    , color_(1, 0, 0, 0.3)
+    , time_(0)
+    , deadTime_(200)
+  {
+  }
+
+  void update()
+  {
+    v_ += a_;
+    pos_ += v_;
+    radian_ += radianV_;
+    ++time_;
+  }
+
+  bool isDead() const
+  {
+    return time_ >= deadTime_;
+  }
+
+  Vector3D pos_;
+  Float2 size_;
+  Float4 color_;
+  
+  Vector3D rotVec_;
+  float radian_;
+  float radianV_;
+
+  Vector3D v_;
+  Vector3D a_;
+  int time_;
+  int deadTime_;
+};
+
+class ParticleSystem
+{
+public:
+  ParticleSystem() {}
+  ~ParticleSystem() {}
+
+  void update()
+  {
+    for (int i=0; i < (int)elements_.size(); ++i)
+    {
+      if (elements_[i].isDead())
+      {
+        elements_.erase(elements_.begin()+i);
+        --i;
+      }
+    }
+    
+    for (int i=0; i < (int)elements_.size(); ++i)
+    {
+      elements_[i].update();
+    }
+    
+    // create
+    {
+      ParticleElement pe;
+      pe.v_ = Vector3D((rand()%6-3)*0.01, 0.1, (rand()%6-3)*0.01);
+      pe.a_ = Vector3D(0, -0.003, 0);
+      float s = (rand()%10-5)*0.1;
+      pe.size_ = Float2(s, s);
+      pe.radian_ = 0;
+      pe.radianV_ = (rand()%10-5)*0.01;
+      pe.rotVec_ = Vector3D((rand()%6-3), (rand()%6-3), (rand()%6-3));
+      elements_.push_back(pe);
+    }
+  }
+
+  void render()
+  {
+    PrimitiveRenderer pr(rctx_);
+
+    Vector3D eyePosition(5, 5, 13);
+    Matrix4x4 viewMatrix = Matrix4x4::buildLookAt(eyePosition, Vector3D(0, 0, 0), Vector3D(0, 1, 0));
+
+    for (int i=0; i < (int)elements_.size(); ++i)
+    {
+      // model
+      Matrix4x4 translateMatrix = Matrix4x4::buildTranslate(elements_[i].pos_);
+      Matrix4x4 rotMatrix = Matrix4x4::buildRotateByVector(elements_[i].rotVec_, elements_[i].radian_);
+      Matrix4x4 modelMatrix = translateMatrix.multiply(rotMatrix);
+      // mode-view
+      Matrix4x4 modelViewMatrix = viewMatrix.multiply(modelMatrix);
+      // model-view-proj
+      Matrix4x4 modelViewProjMatrix = myPerspectiveMatrix.multiply(modelViewMatrix);
+      vs_->setMatrixParameter("modelViewProj", modelViewProjMatrix);
+      vs_->update();
+      
+      // shader update
+      vs_light_->update();
+      fs_light_->update();
+
+      pr.drawRect(Rect(Float2(0, 0), elements_[i].size_), Float4(1, 0.4, 0.4, 0.4));
+    }
+  }
+
+  vector<ParticleElement> elements_;
+};
+
+ParticleSystem particleSystem_;
+
+
 void RenderGL3(HDC dc)
 {
   /* World-space positions for light and eye. */
@@ -533,59 +642,69 @@ void RenderGL3(HDC dc)
   PrimitiveRenderer pr(rctx_);
   rctx_->renderBegin();
   
-  vs_light_->bind();
-  fs_light_->bind();
-  
   //-----------------------
   // setup.
   //-----------------------
-  Vector3D lightPosition(5*sin(myLightAngle), 
+  Vector3D lightPosition(10*sin(myLightAngle), 
                          3.5,
-                         5*cos(myLightAngle));
+                         10*cos(myLightAngle));
   fs_light_->setParameterFloat3("lightPosition", lightPosition);
 
   Vector3D eyePosition(5, 5, 13);
   Matrix4x4 viewMatrix = Matrix4x4::buildLookAt(eyePosition, Vector3D(0, 0, 0), Vector3D(0, 1, 0));
 
-
-  //------------------------
-  // cube.
-  //------------------------
-  // model
-  Matrix4x4 translateMatrix = Matrix4x4::buildTranslate(-2, 0, 0);
-  Matrix4x4 modelMatrix = translateMatrix;
-  // mode-view
-  Matrix4x4 modelViewMatrix = viewMatrix.multiply(modelMatrix);
-  // model-view-proj
-  Matrix4x4 modelViewProjMatrix = myPerspectiveMatrix.multiply(modelViewMatrix);
-  vs_light_->setMatrixParameter("modelViewProj", modelViewProjMatrix);
- 
-  // shader update
-  vs_light_->update();
-  fs_light_->update();
-
-  //glutSolidCube(3.0);
-  pr.drawCube(2.0, Float4(1,1,1,1));
+  {
+    vs_light_->bind();
+    fs_light_->bind();
   
-  //------------------------
-  // shpere.
-  //------------------------
-  // model
-  translateMatrix = Matrix4x4::buildTranslate(+2, 0, 0);
-  modelMatrix = translateMatrix;
-  // mode-view
-  modelViewMatrix = viewMatrix.multiply(modelMatrix);
-  // model-view-proj
-  modelViewProjMatrix = myPerspectiveMatrix.multiply(modelViewMatrix);
-  vs_light_->setMatrixParameter("modelViewProj", modelViewProjMatrix);
-  vs_light_->update();
+    //------------------------
+    // cube.
+    //------------------------
+    // model
+    Matrix4x4 translateMatrix = Matrix4x4::buildTranslate(-3, 0, 0);
+    Matrix4x4 modelMatrix = translateMatrix;
+    // mode-view
+    Matrix4x4 modelViewMatrix = viewMatrix.multiply(modelMatrix);
+    // model-view-proj
+    Matrix4x4 modelViewProjMatrix = myPerspectiveMatrix.multiply(modelViewMatrix);
+    vs_light_->setMatrixParameter("modelViewProj", modelViewProjMatrix);
+ 
+    // shader update
+    vs_light_->update();
+    fs_light_->update();
+    
+    pr.drawCube(2.0, Float4(1,1,1,1));
+    
+    //------------------------
+    // shpere.
+    //------------------------
+    // model
+    translateMatrix = Matrix4x4::buildTranslate(+3, 0, 0);
+    modelMatrix = translateMatrix;
+    // mode-view
+    modelViewMatrix = viewMatrix.multiply(modelMatrix);
+    // model-view-proj
+    modelViewProjMatrix = myPerspectiveMatrix.multiply(modelViewMatrix);
+    vs_light_->setMatrixParameter("modelViewProj", modelViewProjMatrix);
+    vs_light_->update();
+    
+    glutSolidSphere(1.0, 40, 40);
+    
+    //unbind
+    vs_light_->unbind();
+    fs_light_->unbind();
+  }
 
-  glutSolidSphere(1.0, 40, 40);
+  {
+    vs_->bind();
+    fs_->bind();
+    
+    particleSystem_.render();
 
+    vs_->unbind();
+    fs_->unbind();
+  }
 
-  //unbind
-  vs_light_->unbind();
-  fs_light_->unbind();
 
   rctx_->renderEnd();
 }
@@ -689,6 +808,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     if (myLightAngle > 2*kRM_PI) {
       myLightAngle -= 2*kRM_PI;
     }
+    particleSystem_.update();
 		InvalidateRect( hWnd, NULL, FALSE );
 
 		return 0;
