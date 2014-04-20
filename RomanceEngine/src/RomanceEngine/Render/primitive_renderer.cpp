@@ -45,13 +45,19 @@ void PrimitiveRenderer::drawRect(
   };
 
   const uint32_t idx[4] = { 0, 1, 2, 3 };
-  
-  glDisableClientState(GL_NORMAL_ARRAY);
+
+  context_->setVertexPointerEnabled(true);
+  context_->setColorPointerEnabled(true);
+  context_->setTexCoordPointerEnabled(true);
+
   context_->setVertexPointer(4, kRM_FLOAT, sizeof(float)*4, p);
   context_->setColorPointer(4, kRM_FLOAT, sizeof(float)*4, c);
   context_->setTexCoordPointer(2, kRM_FLOAT, sizeof(float)*2, t);
   context_->drawElements(kRM_QUADS, 4, kRM_UNSIGNED_INT, idx);
-  glEnableClientState(GL_NORMAL_ARRAY);
+
+  context_->setVertexPointerEnabled(false);
+  context_->setColorPointerEnabled(false);
+  context_->setTexCoordPointerEnabled(false);
 };
 
 void PrimitiveRenderer::drawRect(
@@ -80,13 +86,15 @@ void PrimitiveRenderer::drawLine(
 
   const uint32_t idx[2] = { 0, 1 };
   
-  glDisableClientState(GL_NORMAL_ARRAY);
-  glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+  context_->setVertexPointerEnabled(true);
+  context_->setColorPointerEnabled(true);
+
   context_->setVertexPointer(4, kRM_FLOAT, sizeof(float)*4, p);
   context_->setColorPointer(4, kRM_FLOAT, sizeof(float)*4, c);
   context_->drawElements(kRM_LINES, 2, kRM_UNSIGNED_INT, idx);
-  glEnableClientState(GL_NORMAL_ARRAY);
-  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+  context_->setVertexPointerEnabled(false);
+  context_->setColorPointerEnabled(false);
 }
 
 void PrimitiveRenderer::drawCube(
@@ -161,11 +169,21 @@ void PrimitiveRenderer::drawCube(
     }
   }
 
+  context_->setVertexPointerEnabled(true);
+  context_->setNormalPointerEnabled(true);
+  context_->setColorPointerEnabled(true);
+  context_->setTexCoordPointerEnabled(true);
+
   context_->setVertexPointer(4, kRM_FLOAT, sizeof(float)*4, pv);
   context_->setNormalPointer(kRM_FLOAT, sizeof(float)*3, nv);
   context_->setColorPointer(4, kRM_FLOAT, sizeof(float)*4, c);
   context_->setTexCoordPointer(2, kRM_FLOAT, sizeof(float)*2, tex);
   context_->drawElements(kRM_TRIANGLES, 6*2*3, kRM_UNSIGNED_INT, iv);
+
+  context_->setVertexPointerEnabled(false);
+  context_->setNormalPointerEnabled(false);
+  context_->setColorPointerEnabled(false);
+  context_->setTexCoordPointerEnabled(false);
 }
 
 } // RomanceEngine

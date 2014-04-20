@@ -23,14 +23,16 @@ public:
   virtual ShaderManagerPtr& getShaderManager() = 0;
   virtual const ShaderManagerPtr& getShaderManager() const = 0;
 
-  virtual void renderBegin() = 0;
-  virtual void renderEnd() = 0;
-
   virtual void setVertexPointer(const int32_t size, const uint32_t type, const uint32_t stride, const void* pointer) = 0;
   virtual void setNormalPointer(const uint32_t type, const uint32_t stride, const void* pointer) = 0;
   virtual void setColorPointer(const int32_t size, const uint32_t type, const uint32_t stride, const void* pointer) = 0;
   virtual void setTexCoordPointer(const int32_t size, const uint32_t type, const uint32_t stride, const void* pointer) = 0;
   virtual void drawElements(const uint32_t mode, const uint32_t count, const uint32_t type, const void* indices) = 0;
+  
+  virtual void setVertexPointerEnabled(const bool isEnable) {};
+  virtual void setNormalPointerEnabled(const bool isEnable) {};
+  virtual void setColorPointerEnabled(const bool isEnable) {};
+  virtual void setTexCoordPointerEnabled(const bool isEnable) {};
 };
 typedef Memory::SharedPtr<RenderContext> RenderContextPtr;
 

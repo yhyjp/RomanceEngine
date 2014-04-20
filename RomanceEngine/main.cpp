@@ -176,22 +176,6 @@ public:
   virtual ShaderManagerPtr& getShaderManager() { return shaderManager_; }
   virtual const ShaderManagerPtr& getShaderManager() const { return shaderManager_; }
 
-  virtual void renderBegin()
-  {
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_NORMAL_ARRAY);
-    glEnableClientState(GL_COLOR_ARRAY);
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-  }
-
-  virtual void renderEnd()
-  {
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glDisableClientState(GL_NORMAL_ARRAY);
-    glDisableClientState(GL_COLOR_ARRAY);
-    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-  }
-
   virtual void setVertexPointer(const int32_t size, const uint32_t type, const uint32_t stride, const void* pointer)
   {
     glVertexPointer(size, type, stride, pointer);
@@ -216,6 +200,38 @@ public:
   {
     glDrawElements(mode, count, type, indices);
   }
+
+  virtual void setVertexPointerEnabled(const bool isEnable)
+  {
+    if (isEnable)
+      glEnableClientState(GL_VERTEX_ARRAY);
+    else 
+      glDisableClientState(GL_VERTEX_ARRAY);
+  };
+
+  virtual void setNormalPointerEnabled(const bool isEnable)
+  {
+    if (isEnable) 
+      glEnableClientState(GL_NORMAL_ARRAY);
+    else
+      glDisableClientState(GL_NORMAL_ARRAY);
+  };
+
+  virtual void setColorPointerEnabled(const bool isEnable)
+  {
+    if (isEnable) 
+      glEnableClientState(GL_COLOR_ARRAY);
+    else
+      glDisableClientState(GL_COLOR_ARRAY);
+  };
+
+  virtual void setTexCoordPointerEnabled(const bool isEnable) 
+  {
+    if (isEnable)
+      glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    else
+      glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+  };
 
 private:
   CGcontext context_;
@@ -461,9 +477,7 @@ void renderToTexture()
   
   glClearColor( 0.2, 0.3, 0.6, 1.0 );
   glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-	
-  rctx_->renderBegin();
-  
+	  
   // vs_tex update.
   vs_tex_->setMatrixParameter("modelViewProj", myOrthoMatrix);
   vs_tex_->update();
@@ -501,8 +515,6 @@ void renderToTexture()
     vs_->unbind();
     fs_->unbind();
   }
-
-  rctx_->renderEnd();
 
 	glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, 0 );
 }
@@ -640,7 +652,6 @@ void RenderGL3(HDC dc)
   /* World-space positions for light and eye. */
   
   PrimitiveRenderer pr(rctx_);
-  rctx_->renderBegin();
   
   //-----------------------
   // setup.
@@ -704,9 +715,6 @@ void RenderGL3(HDC dc)
     vs_->unbind();
     fs_->unbind();
   }
-
-
-  rctx_->renderEnd();
 }
 
 
@@ -716,8 +724,6 @@ void RenderGL( HDC dc )
   
   PrimitiveRenderer pr(rctx_);
 
-  rctx_->renderBegin();
-  
   // vs_tex update.
   vs_tex_->setMatrixParameter("modelViewProj", myOrthoMatrix);
   vs_tex_->update();
@@ -760,8 +766,6 @@ void RenderGL( HDC dc )
   }
   
   glDepthMask(GL_TRUE);
-  
-  rctx_->renderEnd();
 }
 
 #endif
