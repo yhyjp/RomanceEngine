@@ -13,6 +13,7 @@
 #include <RomanceEngine/Memory/shared_ptr.h>
 #include <RomanceEngine/Render/shader_manager.h>
 #include <RomanceEngine/Render/primitive_renderer.h>
+#include <RomanceEngine/Render/camera.h>
 #include <RomanceEngine/Image/dds.h>
 #include <RomanceEngine/Render/render_context.h>
 #include <RomanceEngine/Math/rect.h>
@@ -152,7 +153,6 @@ HGLRC glrc;
 GLuint	fbuffer_texture_name;
 GLuint	renderbuffer_name;
 GLuint	framebuffer_name;
-
 
 // •Êƒtƒ@ƒCƒ‹‚Ö‚ÌˆÈ~‚Í‚à‚¤­‚µ‘Ò‚Â.
 class GLRenderContext : public RenderContext

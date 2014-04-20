@@ -126,6 +126,9 @@
     <ClCompile Include="src\RomanceEngine\GUI\gui_object.cpp">
       <Filter>RomanceEngine\Source\GUI</Filter>
     </ClCompile>
+    <ClCompile Include="src\RomanceEngine\Render\camera.cpp">
+      <Filter>RomanceEngine\Source\Render</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="none.fx">
@@ -222,6 +225,9 @@
     </ClInclude>
     <ClInclude Include="include\RomanceEngine\GUI\gui_manager.h">
       <Filter>RomanceEngine\Header\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RomanceEngine\Render\camera.h">
+      <Filter>RomanceEngine\Header\Render</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
