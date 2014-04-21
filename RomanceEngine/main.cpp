@@ -129,7 +129,12 @@ void sandbox()
   Bitmap bmp("D:/picture/test.bmp");
   bmp.save("D:/picture/test0.bmp");
 
-  Bitmap bmp2(201, 201);
+  Bitmap bmp2(202, 202);
+  for (int i=0; i < 20; ++i)
+  {
+    bmp2.setPixel(100+i, 100, 0xFF, 0xFF, 0x00);
+    bmp2.setPixel(100, 100+i, 0xFF, 0x00, 0xFF);
+  }
   bmp2.save("D:/picture/test1.bmp");
 }
 

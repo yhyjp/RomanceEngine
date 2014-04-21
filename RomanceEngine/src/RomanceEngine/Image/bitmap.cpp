@@ -23,14 +23,13 @@ Bitmap::Bitmap(const int width, const int height)
   fileHeader_.size_ = fileHeader_.offBits_ + width * height * 3;
   fileHeader_.reserved1_ = fileHeader_.reserved2_ = 0;
 
-  int yobun = (4-width*3%4)%4;
   infoHeader_.size_ = 40;
   infoHeader_.width_ = width;
   infoHeader_.height_ = height;
   infoHeader_.planes_ = 1;
   infoHeader_.bitCount_ = 24;
   infoHeader_.compression_ = 0;
-  infoHeader_.sizeImage_ = (width*3 + yobun)*height;
+  infoHeader_.sizeImage_ = (width*3 + getExtraByte())*height;
   infoHeader_.xPixelPerMeter_ = 0;
   infoHeader_.yPixelPerMeter_ = 0;
   infoHeader_.colorUsed_ = 0;
@@ -41,14 +40,14 @@ Bitmap::Bitmap(const int width, const int height)
   {
     for (int j=0; j < width; ++j)
     {
-      int p = i*(width*3 + yobun) + j*3;
-      image_[p+0] = j%256;
-      image_[p+1] = 100;
-      image_[p+2] = 100;
+      int p = i*(width*3 + getExtraByte()) + j*3;
+      image_[p+0] = 0;
+      image_[p+1] = 0;
+      image_[p+2] = 0;
     }
-    for (int j=0; j < yobun; ++j)
+    for (int j=0; j < getExtraByte(); ++j)
     {
-      int p = i*(width*3 + yobun) + width*3 + j;
+      int p = i*(width*3 + getExtraByte()) + width*3 + j;
       image_[p] = 0;
     }
   }
@@ -68,7 +67,7 @@ void Bitmap::load(const std::string& fileName)
   FILE *fp = fopen(fileName.c_str(), "rb");
   if (!fp)
   {
-    printf("ファイルが存在しません: %s", fileName.c_str());
+    printf("ファイルが存在しません: %s\n", fileName.c_str());
     return;
   }
 
@@ -92,8 +91,17 @@ void Bitmap::load(const std::string& fileName)
   fread(&infoHeader_.colorUsed_, 4, 1, fp);
   fread(&infoHeader_.colorImportant_, 4, 1, fp);
 
+  if (infoHeader_.bitCount_ != 24)
+  {
+    printf("24bit bitmap 以外対応していません.\n");
+    fclose(fp);
+    return;
+  }
+
   image_ = new uint8_t[infoHeader_.sizeImage_];
   fread(image_, 1, infoHeader_.sizeImage_, fp);
+
+  fclose(fp);
 }
 
 void Bitmap::save(const std::string& fileName)
@@ -103,7 +111,7 @@ void Bitmap::save(const std::string& fileName)
   FILE *fp = fopen(fileName.c_str(), "wb");
   if (!fp)
   {
-    printf("ファイルが作れません: %s", fileName.c_str());
+    printf("ファイルが作れません: %s\n", fileName.c_str());
     return;
   }
 
@@ -128,7 +136,30 @@ void Bitmap::save(const std::string& fileName)
   fwrite(&infoHeader_.colorImportant_, 4, 1, fp);
 
   fwrite(image_, 1, infoHeader_.sizeImage_, fp);
+
+  fclose(fp);
 }
+
+void Bitmap::setPixel(const int32_t x, const int32_t y, const uint8_t r, const uint8_t g, const uint8_t b)
+{
+  assert(image_);
+  assert(0<=x && x<getWidth() && 0<=y && y<getHeight());
+  const int p = (getWidth()*3 + getExtraByte())*y + x*3;
+  image_[p+0] = b;
+  image_[p+1] = g;
+  image_[p+2] = r;
+}
+
+void Bitmap::getPixel(const int32_t x, const int32_t y, uint8_t& resR, uint8_t& resG, uint8_t& resB)
+{
+  assert(image_);
+  assert(0<=x && x<getWidth() && 0<=y && y<getHeight());
+  const int p = (getWidth()*3 + getExtraByte())*y + x*3;
+  resB = image_[p+0];
+  resG = image_[p+1];
+  resR = image_[p+2];
+}
+
 
 } // Image
 } // RomanceEngine

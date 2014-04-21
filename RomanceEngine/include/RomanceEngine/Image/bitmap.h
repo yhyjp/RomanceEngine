@@ -9,7 +9,7 @@ namespace Image {
 
 class Bitmap
 {
-public:
+private:
   struct FileHeader
   {
     uint16_t type_;      // 'BM'.
@@ -60,6 +60,8 @@ public:
     uint8_t reserved_;
   };
 
+
+public:
   Bitmap();
   Bitmap(const std::string& fileName);
   Bitmap(const int width, const int height);
@@ -68,8 +70,14 @@ public:
 
   void save(const std::string& fileName);
 
+  int32_t getWidth() const { return infoHeader_.width_; }
+  int32_t getHeight() const { return infoHeader_.height_; }
+  void setPixel(const int32_t x, const int32_t y, const uint8_t r, const uint8_t g, const uint8_t b);
+  void getPixel(const int32_t x, const int32_t y, uint8_t& resR, uint8_t& resG, uint8_t& resB);
+
 private:
   void load(const std::string& fileName);
+  int getExtraByte() const { return (4-getWidth()*3%4)%4; }
 
 private:
   FileHeader fileHeader_;
