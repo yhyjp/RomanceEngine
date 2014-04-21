@@ -15,6 +15,7 @@
 #include <RomanceEngine/Render/primitive_renderer.h>
 #include <RomanceEngine/Render/camera.h>
 #include <RomanceEngine/Image/dds.h>
+#include <RomanceEngine/Image/bitmap.h>
 #include <RomanceEngine/Render/render_context.h>
 #include <RomanceEngine/Math/rect.h>
 #include <RomanceEngine/GUI/gui_object.h>
@@ -125,6 +126,11 @@ void testMath()
 void sandbox()
 {
   testMath();
+  Bitmap bmp("D:/picture/test.bmp");
+  bmp.save("D:/picture/test0.bmp");
+
+  Bitmap bmp2(201, 201);
+  bmp2.save("D:/picture/test1.bmp");
 }
 
 #define USE_GL 1

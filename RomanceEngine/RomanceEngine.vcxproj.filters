@@ -129,6 +129,9 @@
     <ClCompile Include="src\RomanceEngine\Render\camera.cpp">
       <Filter>RomanceEngine\Source\Render</Filter>
     </ClCompile>
+    <ClCompile Include="src\RomanceEngine\Image\bitmap.cpp">
+      <Filter>RomanceEngine\Source\Image</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="none.fx">
@@ -228,6 +231,9 @@
     </ClInclude>
     <ClInclude Include="include\RomanceEngine\Render\camera.h">
       <Filter>RomanceEngine\Header\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RomanceEngine\Image\bitmap.h">
+      <Filter>RomanceEngine\Header\Image</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

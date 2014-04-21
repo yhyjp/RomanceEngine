@@ -85,6 +85,7 @@
     <ClCompile Include="src\RomanceEngine\GUI\gui_manager.cpp" />
     <ClCompile Include="src\RomanceEngine\GUI\gui_object.cpp" />
     <ClCompile Include="src\RomanceEngine\GUI\value_bar.cpp" />
+    <ClCompile Include="src\RomanceEngine\Image\bitmap.cpp" />
     <ClCompile Include="src\RomanceEngine\Image\dds.cpp" />
     <ClCompile Include="src\RomanceEngine\Math\matrix_4x4.cpp" />
     <ClCompile Include="src\RomanceEngine\Math\vector_3d.cpp" />
@@ -117,6 +118,7 @@
     <ClInclude Include="include\RomanceEngine\GUI\gui_manager.h" />
     <ClInclude Include="include\RomanceEngine\GUI\gui_object.h" />
     <ClInclude Include="include\RomanceEngine\GUI\value_bar.h" />
+    <ClInclude Include="include\RomanceEngine\Image\bitmap.h" />
     <ClInclude Include="include\RomanceEngine\Math\constant.h" />
     <ClInclude Include="include\RomanceEngine\Math\float1234.h" />
     <ClInclude Include="include\RomanceEngine\Math\math.h" />
