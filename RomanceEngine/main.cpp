@@ -10,6 +10,7 @@
 #include <RomanceEngine/Math/matrix_4x4.h>
 #include <RomanceEngine/Math/constant.h>
 #include <RomanceEngine/Math/float1234.h>
+#include <RomanceEngine/Math/triangle.h>
 #include <RomanceEngine/Memory/shared_ptr.h>
 #include <RomanceEngine/Render/shader_manager.h>
 #include <RomanceEngine/Render/primitive_renderer.h>
@@ -120,6 +121,14 @@ void testMath()
     Float4 f4(7,8,9,10);
     V v(f3);
     cout << v.asString() << endl;
+  }
+
+  cout << "-----------" << endl;
+
+  {
+    Triangle tri(V(0, 0, 0), V(2, 0, 0), V(0, -3, 0));
+    cout << tri.normal().asString() << endl;
+    cout << tri.area() << endl;
   }
 }
 

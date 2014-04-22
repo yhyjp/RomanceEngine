@@ -124,6 +124,7 @@
     <ClInclude Include="include\RomanceEngine\Math\math.h" />
     <ClInclude Include="include\RomanceEngine\Math\matrix_4x4.h" />
     <ClInclude Include="include\RomanceEngine\Math\rect.h" />
+    <ClInclude Include="include\RomanceEngine\Math\triangle.h" />
     <ClInclude Include="include\RomanceEngine\Math\vector_3d.h" />
     <ClInclude Include="include\RomanceEngine\Memory\shared_ptr.h" />
     <ClInclude Include="include\RomanceEngine\RenderSystem\GL\gl_fragment_shader.h" />
