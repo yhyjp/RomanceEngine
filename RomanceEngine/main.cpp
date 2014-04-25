@@ -170,10 +170,6 @@ HWND                    g_hWnd = NULL;
 
 HGLRC glrc;
 
-GLuint	fbuffer_texture_name;
-GLuint	renderbuffer_name;
-GLuint	framebuffer_name;
-
 // ï ÉtÉ@ÉCÉãÇ÷ÇÃà»ç~ÇÕÇ‡Ç§è≠Çµë“Ç¬.
 class GLRenderContext : public RenderContext
 {
@@ -276,6 +272,96 @@ void clickB(const Float2& p)
   cout << "clickedB : (" << p.x_ << ", " << p.y_ << ")" << endl;
 }
 
+class FrameBuffer
+{
+public:
+  FrameBuffer()
+    : colorBuffer_(0)
+    , depthBuffer_(0)
+    , frameBuffer_(0)
+  {}
+
+  int getColorBuffer() const { return colorBuffer_; }
+  int getDepthBuffer() const { return depthBuffer_; }
+
+  bool create(const int width, const int height)
+  {
+    createColorBuffer(width, height);
+    createDepthBuffer(width, height);
+
+    // frame buffer;
+    glGenFramebuffersEXT(1, &frameBuffer_);
+    bind();
+    {
+      glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, colorBuffer_, 0);
+      glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depthBuffer_, 0);
+      
+      if ( glCheckFramebufferStatusEXT( GL_FRAMEBUFFER_EXT ) != GL_FRAMEBUFFER_COMPLETE_EXT )
+      {
+        cerr << "Framebuffer isn't completed" << endl;
+      }
+    }
+    unbind();
+
+    return true;
+  }
+
+  void release()
+  {
+    if (frameBuffer_) { glDeleteFramebuffersEXT(1, &frameBuffer_); frameBuffer_ = 0; }
+    if (colorBuffer_) { glDeleteTextures(1, &colorBuffer_); colorBuffer_ = 0; }
+    if (depthBuffer_) { glDeleteTextures(1, &depthBuffer_); depthBuffer_ = 0; }
+  }
+
+  void bind()
+  {
+    glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, frameBuffer_ );
+  }
+
+  void unbind()
+  {
+    glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, 0 );
+  }
+
+private:
+  void createColorBuffer(const int width, const int height)
+  {
+    glPixelStorei( GL_UNPACK_ALIGNMENT, 4 );
+    glGenTextures( 1, &colorBuffer_ );
+    glBindTexture( GL_TEXTURE_2D, colorBuffer_ );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+    glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, width, height,
+                  0, GL_RGBA, GL_UNSIGNED_BYTE, 0 );
+  }
+
+  void createDepthBuffer(const int width, const int height)
+  {
+    glPixelStorei( GL_UNPACK_ALIGNMENT, 4 );
+    glGenTextures( 1, &depthBuffer_ );
+    glBindTexture( GL_TEXTURE_2D, depthBuffer_ );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+    glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+    glTexImage2D( GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, width, height,
+                    0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, 0 );
+    
+    glBindRenderbufferEXT( GL_RENDERBUFFER_EXT, depthBuffer_ );
+    glRenderbufferStorageEXT( GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT,
+                              width, height );
+  }
+
+private:
+  uint32_t frameBuffer_;
+  uint32_t colorBuffer_;
+  uint32_t depthBuffer_;
+};
+
 #if 0
 // [WIP]
 namespace {
@@ -315,6 +401,7 @@ private:
 
 DDSImage image_;
 GUIManager guiManager_;
+FrameBuffer frameBuffer_;
 
 static float myLightAngle = -0.4;   /* Angle light rotates around scene. */
 static Matrix4x4 myPerspectiveMatrix;
@@ -442,46 +529,8 @@ bool initGL(HWND hwnd)
   {
     const int bufferW = 800;
     const int bufferH = 600;
-
-    glPixelStorei( GL_UNPACK_ALIGNMENT, 4 );
-    glGenTextures( 1, &fbuffer_texture_name );
-    glBindTexture( GL_TEXTURE_2D, fbuffer_texture_name );
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-    glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL );
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, bufferW, bufferH,
-                  0, GL_RGBA, GL_UNSIGNED_BYTE, 0 );
-
-    //init render buffer.
-    glPixelStorei( GL_UNPACK_ALIGNMENT, 4 );
-    glGenTextures( 1, &renderbuffer_name );
-    glBindTexture( GL_TEXTURE_2D, renderbuffer_name );
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-    glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL );
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-    glTexImage2D( GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, bufferW, bufferH,
-                    0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, 0 );
-    //glGenRenderbuffersEXT( 1, &renderbuffer_name );
-    glBindRenderbufferEXT( GL_RENDERBUFFER_EXT, renderbuffer_name );
-    glRenderbufferStorageEXT( GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT,
-                              bufferW, bufferH );
-
-    // init frame buffer;
-    glGenFramebuffersEXT( 1, &framebuffer_name );
-    glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, framebuffer_name );
-    
-    glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT,
-      GL_TEXTURE_2D, fbuffer_texture_name, 0 );
-    glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_DEPTH_STENCIL_ATTACHMENT,
-      GL_TEXTURE_2D, renderbuffer_name, 0 );
-    
-    glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, 0 );
-    
-    fs_tex_->setParameterTexture("decal", fbuffer_texture_name);
+    frameBuffer_.create(bufferW, bufferH);
+    fs_tex_->setParameterTexture("decal", frameBuffer_.getColorBuffer());
   }
 
   wglMakeCurrent( dc, 0 );
@@ -493,8 +542,8 @@ bool initGL(HWND hwnd)
 
 void renderToTexture()
 {
-	glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, framebuffer_name );
-  
+  frameBuffer_.bind();
+
   glClearColor( 0.2, 0.3, 0.6, 1.0 );
   glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 	  
@@ -536,7 +585,7 @@ void renderToTexture()
     fs_->unbind();
   }
 
-	glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, 0 );
+  frameBuffer_.unbind();
 }
 
 static void reshape(int width, int height)
@@ -749,8 +798,9 @@ void RenderGL( HDC dc )
   vs_tex_->update();
 
   // fs_tex update
-  fs_tex_->setParameterTexture("decal", fbuffer_texture_name);
-  //fs_tex_->setParameterTexture("decal", renderbuffer_name);
+  fs_tex_->setParameterTexture("decal", frameBuffer_.getColorBuffer());
+  //fs_tex_->setParameterTexture("decal", frameBuffer_.getDepthBuffer());
+
   fs_tex_->update();
 
   // vs update
@@ -935,6 +985,7 @@ End:
 #endif
 #if USE_GL
     image_.release();
+    frameBuffer_.release();
     ReleaseGL();
 #endif
 	FreeConsole();
