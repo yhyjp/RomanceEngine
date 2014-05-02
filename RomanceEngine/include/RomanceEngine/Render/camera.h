@@ -22,7 +22,8 @@ public:
   const Math::Vector3D& getUpVector() const { return upVector_; }
 
   Math::Matrix4x4 getViewMatrix() const;
-
+  
+  void move(const Math::Vector3D& delta) { location_ += delta; }
 
 private:
   Math::Vector3D location_;

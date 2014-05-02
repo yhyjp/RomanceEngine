@@ -3,6 +3,8 @@
 #include <tchar.h>
 #include <GL/glew.h>
 
+#pragma comment(lib, "winmm.lib")
+
 #include <boost/signals2/signal.hpp>
 #include <boost/bind.hpp>
 
@@ -145,6 +147,31 @@ void sandbox()
     bmp2.setPixel(100, 100+i, 0xFF, 0x00, 0xFF);
   }
   bmp2.save("D:/picture/test1.bmp");
+
+
+	JOYINFOEX JoyInfoEx;
+	JoyInfoEx.dwSize = sizeof(JOYINFOEX);
+	JoyInfoEx.dwFlags = JOY_RETURNALL;
+	for(unsigned int i=0;i<joyGetNumDevs();i++){
+		if(JOYERR_NOERROR == joyGetPosEx(i, &JoyInfoEx))
+		printf("ジョイスティック No.%d　接続されています\n",i);
+	}
+  /*
+while(1){
+		if(JOYERR_NOERROR == joyGetPosEx(0, &JoyInfoEx)){ //0番のジョイスティックの情報を見る
+			printf("dwXpos = 0x%x\t"
+				"dwYpos = 0x%x\t"
+				"dwButtons = 0x%x\n",
+				JoyInfoEx.dwXpos,
+				JoyInfoEx.dwYpos,
+				JoyInfoEx.dwButtons,
+        );
+		  }else{
+			printf("エラー\n");
+		}
+		Sleep(100);
+	}
+  */
 }
 
 #define USE_GL 1
@@ -254,6 +281,7 @@ private:
   ShaderManagerPtr shaderManager_;
 };
 
+Camera camera_;
 RenderContextPtr rctx_;
 VertexShaderPtr vs_tex_;
 FragmentShaderPtr fs_tex_;
@@ -392,6 +420,7 @@ public:
     assert(0<=enumShader && enumShader<kRM_SHADER_N);
     return fragment_[enumShader];
   }
+
 
 private:
   VertexShaderPtr vertex_[kRM_SHADER_N];
@@ -533,6 +562,10 @@ bool initGL(HWND hwnd)
     fs_tex_->setParameterTexture("decal", frameBuffer_.getColorBuffer());
   }
 
+  camera_.setUpVector(Vector3D(0, 1, 0));
+  camera_.setTarget(Vector3D(0, 0, 0));
+  camera_.setLocation(Vector3D(5, 5, 13));
+
   wglMakeCurrent( dc, 0 );
 
   ReleaseDC( hwnd, dc );
@@ -594,7 +627,7 @@ static void reshape(int width, int height)
   double fieldOfView = degreeToRadian(40.0); /* Radian */
 
   /* Build projection matrix once. */
-  myPerspectiveMatrix = Matrix4x4::buildPerspective(fieldOfView, aspectRatio, 1.0, 20.0  /* Znear and Zfar */);  
+  myPerspectiveMatrix = Matrix4x4::buildPerspective(fieldOfView, aspectRatio, 1.0, 100.0  /* Znear and Zfar */);  
   myOrthoMatrix = Matrix4x4::buildOrth(0, width, 0, height, 0.0, 50.0);
   
   glViewport(0, 0, width, height);
@@ -685,9 +718,8 @@ public:
   void render()
   {
     PrimitiveRenderer pr(rctx_);
-
-    Vector3D eyePosition(5, 5, 13);
-    Matrix4x4 viewMatrix = Matrix4x4::buildLookAt(eyePosition, Vector3D(0, 0, 0), Vector3D(0, 1, 0));
+    
+    Matrix4x4 viewMatrix = camera_.getViewMatrix();
 
     for (int i=0; i < (int)elements_.size(); ++i)
     {
@@ -731,7 +763,7 @@ void RenderGL3(HDC dc)
   fs_light_->setParameterFloat3("lightPosition", lightPosition);
 
   Vector3D eyePosition(5, 5, 13);
-  Matrix4x4 viewMatrix = Matrix4x4::buildLookAt(eyePosition, Vector3D(0, 0, 0), Vector3D(0, 1, 0));
+  Matrix4x4 viewMatrix = camera_.getViewMatrix();
 
   {
     vs_light_->bind();
@@ -849,9 +881,29 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
   const UINT height = rc.bottom - rc.top;
 
 	switch(message){
-	case WM_CLOSE:
-		PostMessage(hWnd, WM_DESTROY, 0, 0);
-		break;
+		case WM_CREATE:
+			if(JOYERR_NOERROR!=joySetCapture(hWnd, JOYSTICKID1, 30, FALSE)){
+			}
+      break;
+    case WM_CLOSE:
+      joyReleaseCapture(JOYSTICKID1);
+      PostMessage(hWnd, WM_DESTROY, 0, 0);
+      break;
+		case MM_JOY1MOVE:
+      {
+        Float2 t(2*(LOWORD(lParam)/(float)0xFFFF - 0.5), 2*(HIWORD(lParam)/(float)0xFFFF - 0.5));
+        Vector3D v(t.x_, -t.y_, 0);
+        camera_.move(v * 1);
+      }
+			break;
+		case MM_JOY1BUTTONUP:
+			if(JOY_BUTTON1CHG==wParam){
+			}
+			break;
+		case MM_JOY1BUTTONDOWN:
+			if(JOY_BUTTON1&wParam){
+			}
+			break;
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
